@@ -27,7 +27,13 @@ namespace TG_Manager
         {
             this.InitializeComponent();
             TurrisDongle dongle = new TurrisDongle();
+            dongle.MessageReceived += Dongle_MessageReceived;
             dongle.Initialize();
+        }
+
+        private void Dongle_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            string message = e.Message;
         }
     }
 }
