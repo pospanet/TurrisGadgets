@@ -107,8 +107,13 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JablotronDevices.cs" />
+    <Compile Include="JablotronDeviceType.cs" />
+    <Compile Include="JablotronDevice.cs" />
+    <Compile Include="LowBatteryNotificationDelegate.cs" />
     <Compile Include="MessageReceivedDelegate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TamperNotificationDelegate.cs" />
     <Compile Include="TurrisDongle.cs" />
     <EmbeddedResource Include="Properties\Turris_Gadgets_Lib.rd.xml" />
   </ItemGroup>

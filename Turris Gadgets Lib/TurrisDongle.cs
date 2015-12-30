@@ -13,10 +13,15 @@ namespace Pospa.NET.TurrisGadgets
     public class TurrisDongle : IDisposable
     {
         private const string ProbeCommand = "WHO AM I?";
+        private const string TamperMessagePatern = "TAMPER";
+        private const string LowBatteryMessagePatern = "LB:1";
         private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
+        private const string JablotronDeviceAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
         private const int BufferLength = 128;
         private readonly Regex _turrisDongleResponceRegex;
+        private readonly Regex _jablotronDeviceAddressRegex;
         private List<string> _turrisDingleDeviceIDs;
+        private readonly JablotronDevice[] _jablotronDevices;
 
         private const int CancelTimeout = 3;
 
@@ -26,19 +31,39 @@ namespace Pospa.NET.TurrisGadgets
 
 
         public event MessageReceivedEventHandler MessageReceived;
+        public event LowBatteryNotificationEventHandler LowBatteryNotificationReceived;
+        public event TamperNotificationEventHandler TamperNotificationReceived;
 
         public TurrisDongle()
         {
             _turrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
+            _jablotronDeviceAddressRegex=new Regex(JablotronDeviceAddressRegexString);
             _turrisDongle = null;
             _readCancellationTokenSource = new CancellationTokenSource();
+            _jablotronDevices = new JablotronDevice[32];
         }
 
-        public void Initialize()
+        public async Task Initialize(bool initializeDeviceList = false)
         {
-            InitializeTurrisDongle()
-                .ContinueWith(
-                    t => InitializeMessageProcessing());
+            await InitializeTurrisDongle();
+            if (initializeDeviceList)
+            {
+                using (DataWriter dataWriter = new DataWriter(_turrisDongle.OutputStream))
+                using (DataReader dataReader = new DataReader(_turrisDongle.InputStream))
+                {
+                    for (int i = 0; i < 32; i++)
+                    {
+                        string command = string.Format("GET SLOT:{0:00}", i);
+                        dataWriter.WriteString(ComposeCommand(command));
+                        await dataWriter.StoreAsync();
+                        string message = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
+                        Match match = _jablotronDeviceAddressRegex.Match(message);
+                        string addressString = match.Groups["address"].Value;
+                        int address = Convert.ToInt32(addressString);
+                        _jablotronDevices[i] = JablotronDevice.Create((byte) (address/65536), (ushort) (address%65536));
+                    }
+                }
+            }
         }
 
         public void Cancel()
@@ -53,6 +78,11 @@ namespace Pospa.NET.TurrisGadgets
                 dataWriter.WriteString(ComposeCommand(command));
                 await dataWriter.StoreAsync();
             }
+        }
+
+        public async Task<IEnumerable<JablotronDevice>> GetRegisteredDevices()
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<SerialDevice> InitializeSerialDevice(string id)
@@ -76,6 +106,7 @@ namespace Pospa.NET.TurrisGadgets
                 while (!_readCancellationTokenSource.IsCancellationRequested)
                 {
                     string message = await GetDataFromDataReader(reader, _readCancellationTokenSource.Token);
+                    Task.Run(() => OnMessageReceivedInternal(new MessageReceivedEventArgs(message)));
                     Task.Run(() => OnMessageReceived(new MessageReceivedEventArgs(message)));
                 }
             }
@@ -148,6 +179,17 @@ namespace Pospa.NET.TurrisGadgets
             _readCancellationTokenSource.Dispose();
         }
 
+        protected virtual void OnMessageReceivedInternal(MessageReceivedEventArgs e)
+        {
+            if (e.Message.Contains(LowBatteryMessagePatern))
+            {
+                LowBatteryNotificationReceived?.Invoke(this, new LowBatteryNotificationEventArgs());
+            }
+            if (e.Message.Contains(TamperMessagePatern))
+            {
+                TamperNotificationReceived?.Invoke(this, new TamperNotificationEventArgs());
+            }
+        }
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
             MessageReceived?.Invoke(this, e);
