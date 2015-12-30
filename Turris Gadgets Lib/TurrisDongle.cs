@@ -15,6 +15,7 @@ namespace Pospa.NET.TurrisGadgets
         private const string ProbeCommand = "WHO AM I?";
         private const string TamperMessagePatern = "TAMPER";
         private const string LowBatteryMessagePatern = "LB:1";
+        private const string NoDeviceAddressPatern = "[--------]";
         private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
         private const string JablotronDeviceAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
         private const int BufferLength = 128;
@@ -26,6 +27,8 @@ namespace Pospa.NET.TurrisGadgets
         private const int CancelTimeout = 3;
 
         private SerialDevice _turrisDongle;
+        private DataWriter _dataWriter;
+        private DataReader _dataReader;
 
         private readonly CancellationTokenSource _readCancellationTokenSource;
 
@@ -57,6 +60,11 @@ namespace Pospa.NET.TurrisGadgets
                         dataWriter.WriteString(ComposeCommand(command));
                         await dataWriter.StoreAsync();
                         string message = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
+                        if (message.Contains(NoDeviceAddressPatern))
+                        {
+                            _jablotronDevices[i] = null;
+                            continue;
+                        }
                         Match match = _jablotronDeviceAddressRegex.Match(message);
                         string addressString = match.Groups["address"].Value;
                         int address = Convert.ToInt32(addressString);
@@ -64,6 +72,7 @@ namespace Pospa.NET.TurrisGadgets
                     }
                 }
             }
+            InitializeMessageProcessing();
         }
 
         public void Cancel()

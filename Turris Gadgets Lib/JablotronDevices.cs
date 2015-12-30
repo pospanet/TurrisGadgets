@@ -6,7 +6,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_82(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -14,7 +13,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_88(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -22,7 +20,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_80L(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -30,7 +27,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_81M(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -38,7 +34,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_82SH(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -46,7 +41,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_83M(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -54,7 +48,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_83P(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -62,7 +55,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_85ST(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -70,7 +62,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_86K(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 
@@ -78,7 +69,6 @@ namespace Pospa.NET.TurrisGadgets
     {
         internal AC_82N(byte type, ushort address) : base(type, address)
         {
-            throw new NotImplementedException();
         }
     }
 }
