@@ -4,8 +4,8 @@ namespace Pospa.NET.TurrisGadgets
 {
     public class JablotronDevice
     {
-        private readonly byte _type;
-        private readonly ushort _address;
+        protected readonly byte _type;
+        protected readonly ushort _address;
 
         internal JablotronDevice(byte type, ushort address)
         {
@@ -59,6 +59,16 @@ namespace Pospa.NET.TurrisGadgets
                 case 0x87:
                     return JablotronDevicType.RC_86K;
                     break;
+                case 0x90:
+                case 0x91:
+                case 0x92:
+                case 0x93:
+                case 0x94:
+                case 0x95:
+                case 0x96:
+                case 0x97:
+                    return JablotronDevicType.RC_86K_2nd;
+                    break;
                 case 0x24:
                 case 0x25:
                     return JablotronDevicType.TP_82N;
@@ -91,6 +101,8 @@ namespace Pospa.NET.TurrisGadgets
                     return new AC_85ST(type, address);
                 case JablotronDevicType.RC_86K:
                     return new AC_86K(type, address);
+                case JablotronDevicType.RC_86K_2nd:
+                    return new AC_86K_2nd(type, address);
                 case JablotronDevicType.TP_82N:
                     return new AC_82N(type, address);
                 default:

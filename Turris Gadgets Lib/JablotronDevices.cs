@@ -63,6 +63,14 @@ namespace Pospa.NET.TurrisGadgets
         internal AC_86K(byte type, ushort address) : base(type, address)
         {
         }
+
+        public int Address2nd => (_type + 0x10)*65536 + _address;
+    }
+    public class AC_86K_2nd : JablotronDevice
+    {
+        internal AC_86K_2nd(byte type, ushort address) : base(type, address)
+        {
+        }
     }
 
     public class AC_82N : JablotronDevice

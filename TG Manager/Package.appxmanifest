@@ -47,7 +47,7 @@
     <Capability Name="internetClient" />
     <DeviceCapability Name="serialcommunication">
       <Device Id="any">
-        <Function Type="name:serialPort" />
+        <Function _type="name:serialPort" />
       </Device>
     </DeviceCapability>
   </Capabilities>
