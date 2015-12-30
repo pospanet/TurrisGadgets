@@ -40,7 +40,7 @@ namespace Pospa.NET.TurrisGadgets
         public TurrisDongle()
         {
             _turrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
-            _jablotronDeviceAddressRegex=new Regex(JablotronDeviceAddressRegexString);
+            _jablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
             _turrisDongle = null;
             _readCancellationTokenSource = new CancellationTokenSource();
             _jablotronDevices = new JablotronDevice[32];
@@ -51,28 +51,24 @@ namespace Pospa.NET.TurrisGadgets
             await InitializeTurrisDongle();
             if (initializeDeviceList)
             {
-                using (DataWriter dataWriter = new DataWriter(_turrisDongle.OutputStream))
-                using (DataReader dataReader = new DataReader(_turrisDongle.InputStream))
+                for (int i = 0; i < 32; i++)
                 {
-                    for (int i = 0; i < 32; i++)
+                    string command = string.Format("GET SLOT:{0:00}", i);
+                    _dataWriter.WriteString(ComposeCommand(command));
+                    await _dataWriter.StoreAsync();
+                    string message = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
+                    if (message.Contains(NoDeviceAddressPatern))
                     {
-                        string command = string.Format("GET SLOT:{0:00}", i);
-                        dataWriter.WriteString(ComposeCommand(command));
-                        await dataWriter.StoreAsync();
-                        string message = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
-                        if (message.Contains(NoDeviceAddressPatern))
-                        {
-                            _jablotronDevices[i] = null;
-                            continue;
-                        }
-                        Match match = _jablotronDeviceAddressRegex.Match(message);
-                        string addressString = match.Groups["address"].Value;
-                        int address = Convert.ToInt32(addressString);
-                        _jablotronDevices[i] = JablotronDevice.Create((byte) (address/65536), (ushort) (address%65536));
+                        _jablotronDevices[i] = null;
+                        continue;
                     }
+                    Match match = _jablotronDeviceAddressRegex.Match(message);
+                    string addressString = match.Groups["address"].Value;
+                    int address = Convert.ToInt32(addressString);
+                    _jablotronDevices[i] = JablotronDevice.Create((byte) (address/65536), (ushort) (address%65536));
                 }
             }
-            InitializeMessageProcessing();
+            MessageProcessing();
         }
 
         public void Cancel()
@@ -82,11 +78,8 @@ namespace Pospa.NET.TurrisGadgets
 
         public async Task SendCommand(string command)
         {
-            using (DataWriter dataWriter = new DataWriter(_turrisDongle.OutputStream))
-            {
-                dataWriter.WriteString(ComposeCommand(command));
-                await dataWriter.StoreAsync();
-            }
+            _dataWriter.WriteString(ComposeCommand(command));
+            await _dataWriter.StoreAsync();
         }
 
         public async Task<IEnumerable<JablotronDevice>> GetRegisteredDevices()
@@ -108,16 +101,13 @@ namespace Pospa.NET.TurrisGadgets
         }
 
 
-        private async Task InitializeMessageProcessing()
+        private async Task MessageProcessing()
         {
-            using (DataReader reader = new DataReader(_turrisDongle.InputStream))
+            while (!_readCancellationTokenSource.IsCancellationRequested)
             {
-                while (!_readCancellationTokenSource.IsCancellationRequested)
-                {
-                    string message = await GetDataFromDataReader(reader, _readCancellationTokenSource.Token);
-                    Task.Run(() => OnMessageReceivedInternal(new MessageReceivedEventArgs(message)));
-                    Task.Run(() => OnMessageReceived(new MessageReceivedEventArgs(message)));
-                }
+                string message = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
+                Task.Run(() => OnMessageReceivedInternal(new MessageReceivedEventArgs(message)));
+                Task.Run(() => OnMessageReceived(new MessageReceivedEventArgs(message)));
             }
         }
 
@@ -129,21 +119,30 @@ namespace Pospa.NET.TurrisGadgets
             foreach (DeviceInformation deviceInformation in deviceInformations.Where(di => di.Id.Contains("FTDIBUS#")))
             {
                 string readString = "";
-                using (SerialDevice serialPort = await InitializeSerialDevice(deviceInformation.Id))
-                {
-                    using (DataWriter dataWriter = new DataWriter(serialPort.OutputStream))
-                    {
-                        dataWriter.WriteString(ComposeCommand(ProbeCommand));
-                        await dataWriter.StoreAsync();
-                        using (DataReader dataReader = new DataReader(serialPort.InputStream))
-                        {
-                            readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
-                        }
-                    }
-                }
+                SerialDevice serialPort = await InitializeSerialDevice(deviceInformation.Id);
+                DataWriter dataWriter = new DataWriter(serialPort.OutputStream);
+                dataWriter.WriteString(ComposeCommand(ProbeCommand));
+                await dataWriter.StoreAsync();
+                DataReader dataReader = new DataReader(serialPort.InputStream);
+                readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
+
+
                 if (_turrisDongleResponceRegex.IsMatch(readString))
                 {
                     _turrisDingleDeviceIDs.Add(deviceInformation.Id);
+                    _turrisDongle = serialPort;
+                    _dataReader = dataReader;
+                    _dataWriter = dataWriter;
+                }
+                else
+                {
+                    dataReader.DetachBuffer();
+                    dataReader.DetachStream();
+                    dataReader.Dispose();
+                    dataWriter.DetachBuffer();
+                    dataWriter.DetachStream();
+                    dataWriter.Dispose();
+                    serialPort.Dispose();
                 }
             }
             int dongleCount = _turrisDingleDeviceIDs.Count();
@@ -155,8 +154,6 @@ namespace Pospa.NET.TurrisGadgets
             {
                 throw new NotSupportedException("Only one Turris dongle is supported (at the moment).");
             }
-
-            _turrisDongle = await InitializeSerialDevice(_turrisDingleDeviceIDs.First());
         }
 
         private static async Task<string> GetDataFromDataReader(DataReader dataReader,
@@ -184,6 +181,12 @@ namespace Pospa.NET.TurrisGadgets
         {
             Cancel();
             Task.Delay(TimeSpan.FromSeconds(CancelTimeout));
+            _dataReader?.DetachBuffer();
+            _dataReader?.DetachStream();
+            _dataReader?.Dispose();
+            _dataWriter?.DetachBuffer();
+            _dataWriter?.DetachStream();
+            _dataWriter?.Dispose();
             _turrisDongle?.Dispose();
             _readCancellationTokenSource.Dispose();
         }
@@ -199,6 +202,7 @@ namespace Pospa.NET.TurrisGadgets
                 TamperNotificationReceived?.Invoke(this, new TamperNotificationEventArgs());
             }
         }
+
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
             MessageReceived?.Invoke(this, e);
