@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -17,12 +18,15 @@ namespace Pospa.NET.TurrisGadgets
         private const string LowBatteryMessagePatern = "LB:1";
         private const string NoDeviceAddressPatern = "[--------]";
         private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
-        private const string JablotronDeviceAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
+        private const string JablotronDeviceSlotAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
+        private const string JablotronDeviceAddressRegexString = @"\[(?<address>\d+)\]";
         private const int BufferLength = 128;
         private readonly Regex _turrisDongleResponceRegex;
+        private readonly Regex _jablotronDeviceSlotAddressRegex;
         private readonly Regex _jablotronDeviceAddressRegex;
         private List<string> _turrisDingleDeviceIDs;
-        private readonly JablotronDevice[] _jablotronDevices;
+        private readonly string[] _jablotronDeviceMap;
+        private readonly Dictionary<string, JablotronDevice> _jablotronDevices;
 
         private const int CancelTimeout = 3;
 
@@ -37,17 +41,23 @@ namespace Pospa.NET.TurrisGadgets
         public event LowBatteryNotificationEventHandler LowBatteryNotificationReceived;
         public event TamperNotificationEventHandler TamperNotificationReceived;
 
+        private bool _isInitialized;
+
         public TurrisDongle()
         {
             _turrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
+            _jablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
             _jablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
             _turrisDongle = null;
             _readCancellationTokenSource = new CancellationTokenSource();
-            _jablotronDevices = new JablotronDevice[32];
+            _jablotronDeviceMap = new string[32];
+            _jablotronDevices = new Dictionary<string, JablotronDevice>();
+            _isInitialized = false;
         }
 
         public async Task Initialize(bool initializeDeviceList = false)
         {
+            if (_isInitialized) return;
             await InitializeTurrisDongle();
             if (initializeDeviceList)
             {
@@ -59,15 +69,19 @@ namespace Pospa.NET.TurrisGadgets
                     string message = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
                     if (message.Contains(NoDeviceAddressPatern))
                     {
-                        _jablotronDevices[i] = null;
+                        _jablotronDeviceMap[i] = null;
                         continue;
                     }
-                    Match match = _jablotronDeviceAddressRegex.Match(message);
+                    Match match = _jablotronDeviceSlotAddressRegex.Match(message);
                     string addressString = match.Groups["address"].Value;
                     int address = Convert.ToInt32(addressString);
-                    _jablotronDevices[i] = JablotronDevice.Create((byte) (address/65536), (ushort) (address%65536));
+                    JablotronDevice jablotronDevice = JablotronDevice.Create(this, (byte) (address/65536),
+                        (ushort) (address%65536));
+                    _jablotronDevices.Add(addressString, jablotronDevice);
+                    _jablotronDeviceMap[i] = addressString;
                 }
             }
+            _isInitialized = true;
             MessageProcessing();
         }
 
@@ -82,9 +96,9 @@ namespace Pospa.NET.TurrisGadgets
             await _dataWriter.StoreAsync();
         }
 
-        public async Task<IEnumerable<JablotronDevice>> GetRegisteredDevices()
+        public IEnumerable<JablotronDevice> GetRegisteredDevices()
         {
-            throw new NotImplementedException();
+            return _jablotronDevices.Select(pair => pair.Value);
         }
 
         private async Task<SerialDevice> InitializeSerialDevice(string id)
@@ -193,6 +207,10 @@ namespace Pospa.NET.TurrisGadgets
 
         protected virtual void OnMessageReceivedInternal(MessageReceivedEventArgs e)
         {
+            Match match = _jablotronDeviceAddressRegex.Match(e.Message);
+            string addressString = match.Groups["address"].Value;
+            _jablotronDevices[addressString].ProcessMessage(e.Message);
+
             if (e.Message.Contains(LowBatteryMessagePatern))
             {
                 LowBatteryNotificationReceived?.Invoke(this, new LowBatteryNotificationEventArgs());

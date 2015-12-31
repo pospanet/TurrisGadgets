@@ -1,19 +1,29 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Windows.Devices.Sms;
+using Windows.UI.Xaml.Documents;
 
 namespace Pospa.NET.TurrisGadgets
 {
-    public class JablotronDevice
+    public abstract class JablotronDevice
     {
+        private const string TxMessagePatern = "TX ENROLL:{0} PGX:{1} PGY:{2} ALARM:{3} BEEP:{4}";
         protected readonly byte _type;
         protected readonly ushort _address;
 
-        internal JablotronDevice(byte type, ushort address)
+        private readonly TurrisDongle _turrisDongle;
+
+        internal JablotronDevice(TurrisDongle dongle, byte type, ushort address)
         {
+            _turrisDongle = dongle;
             _type = type;
             _address = address;
+            AddressString = Address.ToString("00000000");
         }
 
         public int Address => _type*65536 + _address;
+
+        public string AddressString { get; }
 
         internal static JablotronDevicType GetDevicType(byte deviceType)
         {
@@ -79,34 +89,34 @@ namespace Pospa.NET.TurrisGadgets
             }
         }
 
-        public static JablotronDevice Create(byte type, ushort address)
+        public static JablotronDevice Create(TurrisDongle dongle, byte type, ushort address)
         {
-            switch(GetDevicType(type))
+            switch (GetDevicType(type))
             {
                 case JablotronDevicType.AC_82:
-                    return new AC_82(type, address);
+                    return new AC_82(dongle, type, address);
                 case JablotronDevicType.AC_88:
-                    return new AC_88(type, address);
+                    return new AC_88(dongle, type, address);
                 case JablotronDevicType.JA_80L:
-                    return new AC_80L(type, address);
+                    return new AC_80L(dongle, type, address);
                 case JablotronDevicType.JA_81M:
-                    return new AC_81M(type, address);
+                    return new AC_81M(dongle, type, address);
                 case JablotronDevicType.JA_82SH:
-                    return new AC_82SH(type, address);
+                    return new AC_82SH(dongle, type, address);
                 case JablotronDevicType.JA_83M:
-                    return new AC_83M(type, address);
+                    return new AC_83M(dongle, type, address);
                 case JablotronDevicType.JA_83P:
-                    return new AC_83P(type, address);
+                    return new AC_83P(dongle, type, address);
                 case JablotronDevicType.JA_85ST:
-                    return new AC_85ST(type, address);
+                    return new AC_85ST(dongle, type, address);
                 case JablotronDevicType.RC_86K:
-                    return new AC_86K(type, address);
+                    return new AC_86K(dongle, type, address);
                 case JablotronDevicType.RC_86K_2nd:
-                    return new AC_86K_2nd(type, address);
+                    return new AC_86K_2nd(dongle, type, address);
                 case JablotronDevicType.TP_82N:
-                    return new AC_82N(type, address);
+                    return new AC_82N(dongle, type, address);
                 default:
-                    return new JablotronDevice(type, address);
+                    return new UnknownJablotronDevice(dongle, type, address);
 
             }
         }
@@ -124,5 +134,13 @@ namespace Pospa.NET.TurrisGadgets
         {
             TamperNotification?.Invoke(this, e);
         }
+
+        protected async Task SendMessage(bool pgx, bool pgy)
+        {
+            string message = string.Format(TxMessagePatern, 0, pgx ? 1 : 0, pgy ? 1 : 0, 0, "NONE");
+            await _turrisDongle.SendCommand(message);
+        }
+
+        protected internal abstract void ProcessMessage(string message);
     }
 }
