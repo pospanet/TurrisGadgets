@@ -23,9 +23,9 @@ namespace Pospa.NET.TurrisGadgets
         private const string JablotronDeviceSlotAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
         private const string JablotronDeviceAddressRegexString = @"\[(?<address>\d+)\]";
         private const int BufferLength = 128;
-        private readonly Regex _turrisDongleResponceRegex;
-        private readonly Regex _jablotronDeviceSlotAddressRegex;
-        private readonly Regex _jablotronDeviceAddressRegex;
+        private static readonly Regex _turrisDongleResponceRegex;
+        private static readonly Regex _jablotronDeviceSlotAddressRegex;
+        private static readonly Regex _jablotronDeviceAddressRegex;
         private List<string> _turrisDingleDeviceIDs;
         private readonly string[] _jablotronDeviceMap;
         private readonly Dictionary<string, JablotronDevice> _jablotronDevices;
@@ -47,11 +47,15 @@ namespace Pospa.NET.TurrisGadgets
 
         public bool IsInitialized { get; private set; }
 
-        public TurrisDongle()
+        static TurrisDongle()
         {
             _turrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
             _jablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
             _jablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
+        }
+
+        public TurrisDongle()
+        {
             _turrisDongle = null;
             _readCancellationTokenSource = new CancellationTokenSource();
             _jablotronDeviceMap = new string[32];

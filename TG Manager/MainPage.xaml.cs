@@ -36,6 +36,23 @@ namespace TG_Manager
                 pir.BeaconNotification += Pir_BeaconNotification;
                 pir.SensorNotification += Pir_SensorNotification;
             }
+            JablotronDevice[] thermostats =
+               _dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.TP_82N)).ToArray();
+            foreach (TP_82N thermostat in thermostats)
+            {
+                thermostat.TemperatureMeasuredNotification += Thermostat_TemperatureMeasuredNotification;
+                thermostat.TemperatureSetNotification += Thermostat_TemperatureSetNotification;
+            }
+        }
+
+        private void Thermostat_TemperatureSetNotification(object sender, TemperatureEventArgs e)
+        {
+            decimal temperature = e.Temperature;
+        }
+
+        private void Thermostat_TemperatureMeasuredNotification(object sender, TemperatureEventArgs e)
+        {
+            decimal temperature = e.Temperature;
         }
 
         private void Dongle_MessageReceived(object sender, MessageReceivedEventArgs e)

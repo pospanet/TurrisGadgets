@@ -112,6 +112,7 @@
     <Compile Include="Jablotron\Devices\AC_88.cs" />
     <Compile Include="Jablotron\Devices\JablotronDevices.cs" />
     <Compile Include="Jablotron\Devices\RC_86K.cs" />
+    <Compile Include="Jablotron\Devices\TP_82N.cs" />
     <Compile Include="Jablotron\JablotronDeviceType.cs" />
     <Compile Include="Jablotron\JablotronDevice.cs" />
     <Compile Include="Jablotron\LowBatteryNotificationDelegate.cs" />
