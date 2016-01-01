@@ -13,6 +13,7 @@ Because Turris Gadgets is a community project in Czech republic only (as far as 
 Knihovna slouží pro zjednodučení prráce a vývoje nad Windows 10 pomocí C#. V současné době je projekt v aplha fázi kde se postupně přidávají funkcionality a ladí komunikace se sadou.
 
 ## Plány
+<s>Přeškrtnuté</s> už realizováno.
 * <s>Komunikace s Turris Dongle</s>
 * <s>Enumerace zařízení připojených k Turris Dongle</s>
 * <s>Eventy pro zprávy ze zařízení</s>
