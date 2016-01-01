@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/pospanet/TurrisGadgets/blob/master/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/pospanet/TurrisGadgets</projectUrl>
+    <iconUrl>https://www.turris.cz/gadgets/lib/tpl/turris/images/turris-gadgets.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Alpha version.</releaseNotes>
+    <copyright>Copyright Pospa.NET 2016</copyright>
+    <tags>Turris Jablotron TurrisGadgets UWP IoT</tags>
+  </metadata>
+</package>

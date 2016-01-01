@@ -29,6 +29,8 @@ namespace Pospa.NET.TurrisGadgets
         private readonly string[] _jablotronDeviceMap;
         private readonly Dictionary<string, JablotronDevice> _jablotronDevices;
 
+        private Task _messageProcessingTask;
+
         private const int CancelTimeout = 3;
 
         private SerialDevice _turrisDongle;
@@ -56,7 +58,7 @@ namespace Pospa.NET.TurrisGadgets
             _isInitialized = false;
         }
 
-        public async Task Initialize(bool initializeDeviceList = false)
+        public async Task Initialize(bool initializeDeviceList = true)
         {
             if (_isInitialized) return;
             await InitializeTurrisDongle();
@@ -87,7 +89,7 @@ namespace Pospa.NET.TurrisGadgets
             {
                 await device.Value.Initialize();
             }
-            MessageProcessing();
+            _messageProcessingTask = MessageProcessing();
         }
 
         public void Cancel()
