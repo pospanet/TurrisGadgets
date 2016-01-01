@@ -27,7 +27,7 @@ Pro instalaci lze použít nuget balíček https://www.nuget.org/packages/Pospa.
    - JA-81M  Univerzální rozhraní  1 ks  Pro připojení externích detektorů  
    - JA-82SH  Detektor otřesu nebo náklonu  1 ks  Detekce manipulace s předměty 
    - JA-83M  Magnetický detektor mini  2 ks  Detekce otevření dveří  
-   - JA-83P  PIR detektor  2 ks  Detekce pohybu osob
+   - <s>JA-83P  PIR detektor  2 ks  Detekce pohybu osob</s>
    - JA-85ST  Detektor kouře a teploty  1 ks  Detekce požáru
    - RC-86K  Dálkový ovladač  2 ks  Aktivace/deaktivace systému
    - TP-82N  Termostat
