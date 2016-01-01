@@ -14,9 +14,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_80L : JablotronDevice
+    public class JA_80L : JablotronDevice
     {
-        internal AC_80L(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_80L(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -26,9 +26,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_81M : JablotronDevice
+    public class JA_81M : JablotronDevice
     {
-        internal AC_81M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_81M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -38,9 +38,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_82SH : JablotronDevice
+    public class JA_82SH : JablotronDevice
     {
-        internal AC_82SH(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_82SH(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -50,9 +50,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_83M : JablotronDevice
+    public class JA_83M : JablotronDevice
     {
-        internal AC_83M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_83M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -62,9 +62,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_83P : JablotronDevice
+    public class JA_85ST : JablotronDevice
     {
-        internal AC_83P(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_85ST(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -74,45 +74,9 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class AC_85ST : JablotronDevice
+    public class TP_82N : JablotronDevice
     {
-        internal AC_85ST(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-
-        protected internal override void ProcessMessage(string message)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class AC_86K : JablotronDevice
-    {
-        internal AC_86K(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-
-        public int Address2nd => (_type + 0x10)*65536 + _address;
-        protected internal override void ProcessMessage(string message)
-        {
-            throw new NotImplementedException();
-        }
-    }
-    public class AC_86K_2nd : JablotronDevice
-    {
-        internal AC_86K_2nd(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-
-        protected internal override void ProcessMessage(string message)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class AC_82N : JablotronDevice
-    {
-        internal AC_82N(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal TP_82N(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 

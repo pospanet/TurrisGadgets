@@ -16,6 +16,7 @@ namespace Pospa.NET.TurrisGadgets
     {
         private const string ProbeCommand = "WHO AM I?";
         private const string TamperMessagePatern = "TAMPER";
+        private const string ActActivePatern = "ACT:1";
         private const string LowBatteryMessagePatern = "LB:1";
         private const string NoDeviceAddressPatern = "[--------]";
         private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
@@ -44,7 +45,7 @@ namespace Pospa.NET.TurrisGadgets
         public event LowBatteryNotificationEventHandler LowBatteryNotificationReceived;
         public event TamperNotificationEventHandler TamperNotificationReceived;
 
-        private bool _isInitialized;
+        public bool IsInitialized { get; private set; }
 
         public TurrisDongle()
         {
@@ -55,12 +56,13 @@ namespace Pospa.NET.TurrisGadgets
             _readCancellationTokenSource = new CancellationTokenSource();
             _jablotronDeviceMap = new string[32];
             _jablotronDevices = new Dictionary<string, JablotronDevice>();
-            _isInitialized = false;
+            IsInitialized = false;
         }
 
+        public event InitializationFinishedEventHandler InitializationFinishedNotification;
         public async Task Initialize(bool initializeDeviceList = true)
         {
-            if (_isInitialized) return;
+            if (IsInitialized) return;
             await InitializeTurrisDongle();
             if (initializeDeviceList)
             {
@@ -84,11 +86,12 @@ namespace Pospa.NET.TurrisGadgets
                     _jablotronDeviceMap[i] = addressString;
                 }
             }
-            _isInitialized = true;
+            IsInitialized = true;
             foreach (KeyValuePair<string, JablotronDevice> device in _jablotronDevices)
             {
                 await device.Value.Initialize();
             }
+            OnInitializationFinishedNotification(new InitializationFinishedEventArgs());
             _messageProcessingTask = MessageProcessing();
         }
 
@@ -229,13 +232,26 @@ namespace Pospa.NET.TurrisGadgets
             }
             if (e.Message.Contains(TamperMessagePatern))
             {
-                TamperNotificationReceived?.Invoke(this, new TamperNotificationEventArgs());
+                TamperNotificationReceived?.Invoke(this, new TamperNotificationEventArgs(e.Message.Contains(ActActivePatern)));
             }
         }
 
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
             MessageReceived?.Invoke(this, e);
+        }
+
+        protected virtual void OnInitializationFinishedNotification(InitializationFinishedEventArgs e)
+        {
+            InitializationFinishedNotification?.Invoke(this, e);
+        }
+    }
+    public delegate void InitializationFinishedEventHandler(object sender, InitializationFinishedEventArgs e);
+
+    public class InitializationFinishedEventArgs : EventArgs
+    {
+        public InitializationFinishedEventArgs()
+        {
         }
     }
 }

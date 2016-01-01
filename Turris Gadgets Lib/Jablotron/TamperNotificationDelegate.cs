@@ -6,8 +6,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
     public class TamperNotificationEventArgs : EventArgs
     {
-        public TamperNotificationEventArgs()
+        public bool IsCircuitClosed { get; }
+        public TamperNotificationEventArgs(bool isCircuitClosed)
         {
+            IsCircuitClosed = isCircuitClosed;
         }
     }
 }

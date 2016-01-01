@@ -101,23 +101,23 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
                 case JablotronDevicType.AC_88:
                     return new AC_88(dongle, type, address);
                 case JablotronDevicType.JA_80L:
-                    return new AC_80L(dongle, type, address);
+                    return new JA_80L(dongle, type, address);
                 case JablotronDevicType.JA_81M:
-                    return new AC_81M(dongle, type, address);
+                    return new JA_81M(dongle, type, address);
                 case JablotronDevicType.JA_82SH:
-                    return new AC_82SH(dongle, type, address);
+                    return new JA_82SH(dongle, type, address);
                 case JablotronDevicType.JA_83M:
-                    return new AC_83M(dongle, type, address);
+                    return new JA_83M(dongle, type, address);
                 case JablotronDevicType.JA_83P:
-                    return new AC_83P(dongle, type, address);
+                    return new JA_83P(dongle, type, address);
                 case JablotronDevicType.JA_85ST:
-                    return new AC_85ST(dongle, type, address);
+                    return new JA_85ST(dongle, type, address);
                 case JablotronDevicType.RC_86K:
-                    return new AC_86K(dongle, type, address);
+                    return new RC_86K(dongle, type, address);
                 case JablotronDevicType.RC_86K_2nd:
-                    return new AC_86K_2nd(dongle, type, address);
+                    return new RC_86K_2nd(dongle, type, address);
                 case JablotronDevicType.TP_82N:
-                    return new AC_82N(dongle, type, address);
+                    return new TP_82N(dongle, type, address);
                 default:
                     return new UnknownJablotronDevice(dongle, type, address);
 
