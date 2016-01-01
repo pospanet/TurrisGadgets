@@ -1,5 +1,6 @@
 ﻿using Windows.UI.Xaml.Controls;
 using Pospa.NET.TurrisGadgets;
+using Pospa.NET.TurrisGadgets.Jablotron;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 

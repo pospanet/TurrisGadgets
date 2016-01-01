@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Windows.Devices.Sms;
-using Windows.UI.Xaml.Documents;
+﻿using System.Threading.Tasks;
+using Pospa.NET.TurrisGadgets.Jablotron.Devices;
 
-namespace Pospa.NET.TurrisGadgets
+namespace Pospa.NET.TurrisGadgets.Jablotron
 {
     public abstract class JablotronDevice
     {
@@ -11,7 +9,7 @@ namespace Pospa.NET.TurrisGadgets
         protected readonly byte _type;
         protected readonly ushort _address;
 
-        private readonly TurrisDongle _turrisDongle;
+        protected readonly TurrisDongle _turrisDongle;
 
         internal JablotronDevice(TurrisDongle dongle, byte type, ushort address)
         {
@@ -25,7 +23,7 @@ namespace Pospa.NET.TurrisGadgets
 
         public string AddressString { get; }
 
-        internal static JablotronDevicType GetDevicType(byte deviceType)
+        internal static JablotronDevicType GetDeviceType(byte deviceType)
         {
             switch (deviceType)
             {
@@ -89,9 +87,14 @@ namespace Pospa.NET.TurrisGadgets
             }
         }
 
+        public JablotronDevicType GetDeviceType()
+        {
+            return GetDeviceType(_type);
+        }
+
         public static JablotronDevice Create(TurrisDongle dongle, byte type, ushort address)
         {
-            switch (GetDevicType(type))
+            switch (GetDeviceType(type))
             {
                 case JablotronDevicType.AC_82:
                     return new AC_82(dongle, type, address);
@@ -142,5 +145,9 @@ namespace Pospa.NET.TurrisGadgets
         }
 
         protected internal abstract void ProcessMessage(string message);
+
+        protected internal virtual async Task Initialize()
+        {
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Pospa.NET.TurrisGadgets
+namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
 {
     public class AC_82 : JablotronDevice
     {
@@ -11,25 +11,6 @@ namespace Pospa.NET.TurrisGadgets
         protected internal override void ProcessMessage(string message)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    public class AC_88 : JablotronDevice
-    {
-        private const string MessagePatern = "RELAY:1";
-        internal AC_88(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-        public event RelayStateChangeEventHandler RelayStateChangeNotification;
-
-        protected internal override void ProcessMessage(string message)
-        {
-            OnRelayStateChangeNotification(new RelayStateChangeEventArgs(message.Contains(MessagePatern)));
-        }
-
-        protected virtual void OnRelayStateChangeNotification(RelayStateChangeEventArgs e)
-        {
-            RelayStateChangeNotification?.Invoke(this, e);
         }
     }
 

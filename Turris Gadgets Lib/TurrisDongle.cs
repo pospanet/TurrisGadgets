@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Devices.SerialCommunication;
 using Windows.Storage.Streams;
+using Pospa.NET.TurrisGadgets.Jablotron;
 
 namespace Pospa.NET.TurrisGadgets
 {
@@ -82,6 +83,10 @@ namespace Pospa.NET.TurrisGadgets
                 }
             }
             _isInitialized = true;
+            foreach (KeyValuePair<string, JablotronDevice> device in _jablotronDevices)
+            {
+                await device.Value.Initialize();
+            }
             MessageProcessing();
         }
 
@@ -99,6 +104,11 @@ namespace Pospa.NET.TurrisGadgets
         public IEnumerable<JablotronDevice> GetRegisteredDevices()
         {
             return _jablotronDevices.Select(pair => pair.Value);
+        }
+
+        internal string[] GetRegisteredDeviceMap()
+        {
+            return _jablotronDeviceMap;
         }
 
         private async Task<SerialDevice> InitializeSerialDevice(string id)

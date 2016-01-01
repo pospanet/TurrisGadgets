@@ -107,14 +107,15 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JablotronDevices.cs" />
-    <Compile Include="JablotronDeviceType.cs" />
-    <Compile Include="JablotronDevice.cs" />
-    <Compile Include="LowBatteryNotificationDelegate.cs" />
-    <Compile Include="MessageReceivedDelegate.cs" />
+    <Compile Include="Jablotron\Devices\AC_88.cs" />
+    <Compile Include="Jablotron\Devices\JablotronDevices.cs" />
+    <Compile Include="Jablotron\JablotronDeviceType.cs" />
+    <Compile Include="Jablotron\JablotronDevice.cs" />
+    <Compile Include="Jablotron\LowBatteryNotificationDelegate.cs" />
+    <Compile Include="Jablotron\MessageReceivedDelegate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RelayStateChangeDelegate.cs" />
-    <Compile Include="TamperNotificationDelegate.cs" />
+    <Compile Include="Jablotron\RelayStateChangeDelegate.cs" />
+    <Compile Include="Jablotron\TamperNotificationDelegate.cs" />
     <Compile Include="TurrisDongle.cs" />
     <EmbeddedResource Include="Properties\Turris_Gadgets_Lib.rd.xml" />
   </ItemGroup>

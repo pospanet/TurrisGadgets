@@ -1,4 +1,4 @@
-﻿namespace Pospa.NET.TurrisGadgets
+﻿namespace Pospa.NET.TurrisGadgets.Jablotron
 {
     public enum JablotronDevicType : byte
     {

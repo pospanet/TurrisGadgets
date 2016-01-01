@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Pospa.NET.TurrisGadgets
+namespace Pospa.NET.TurrisGadgets.Jablotron
 {
     public delegate void RelayStateChangeEventHandler(object sender, RelayStateChangeEventArgs e);
 
