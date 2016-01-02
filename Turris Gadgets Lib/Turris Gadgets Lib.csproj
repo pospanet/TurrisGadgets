@@ -109,6 +109,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Jablotron\DefaultJablotronSensorDevice.cs" />
+    <Compile Include="Jablotron\Devices\JA_81M.cs" />
+    <Compile Include="Jablotron\Devices\JA_82SH.cs" />
     <Compile Include="Jablotron\Devices\JA_83M.cs" />
     <Compile Include="Jablotron\Devices\JA_83P.cs" />
     <Compile Include="Jablotron\Devices\AC_88.cs" />
