@@ -145,7 +145,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
             await _turrisDongle.SendCommand(message);
         }
 
-        internal async Task OnMessageReceiver(string message)
+        internal virtual async Task OnMessageReceiver(string message)
         {
             if (message.Contains(TurrisDongle.LowBatteryMessagePatern))
             {
