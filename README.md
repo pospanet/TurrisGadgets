@@ -30,7 +30,7 @@ Pro instalaci lze použít nuget balíček https://www.nuget.org/packages/Pospa.
    - <s>JA-83P  PIR detektor  2 ks  Detekce pohybu osob</s>
    - JA-85ST  Detektor kouře a teploty  1 ks  Detekce požáru
    - RC-86K  Dálkový ovladač  2 ks  Aktivace/deaktivace systému
-   - TP-82N  Termostat
+   - <s>TP-82N  Termostat</s>
 * Podpora pro Azure IoT Suite https://www.microsoft.com/en-us/server-cloud/internet-of-things/azure-iot-suite.aspx
    - Registrace do IoT Hubu
    - Posílání událostí do IoT Hubu
