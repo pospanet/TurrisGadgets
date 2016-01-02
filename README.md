@@ -21,15 +21,15 @@ Pro instalaci lze použít nuget balíček https://www.nuget.org/packages/Pospa.
 * <s>Enumerace zařízení připojených k Turris Dongle</s>
 * <s>Eventy pro zprávy ze zařízení</s>
 * Plné ovládání sady pomocí managed objektů a nikoliv zpráv přímo do Turris Dongle
-   - AC-82  Přijímač 2x relé 230V  1 ks  Ovládání světel  
-   - AC-88  Dálkově ovládaná zásuvka  2 ks  Zapnutí přímotopu  
-   - JA-80L Interní siréna  1 ks  Zvuková signalizace 
-   - JA-81M  Univerzální rozhraní  1 ks  Pro připojení externích detektorů  
-   - JA-82SH  Detektor otřesu nebo náklonu  1 ks  Detekce manipulace s předměty 
-   - JA-83M  Magnetický detektor mini  2 ks  Detekce otevření dveří  
-   - <s>JA-83P  PIR detektor  2 ks  Detekce pohybu osob</s>
-   - JA-85ST  Detektor kouře a teploty  1 ks  Detekce požáru
-   - RC-86K  Dálkový ovladač  2 ks  Aktivace/deaktivace systému
+   - AC-82  Přijímač 2x relé 230V Ovládání světel  
+   - AC-88  Dálkově ovládaná zásuvka Zapnutí přímotopu  
+   - JA-80L Interní siréna Zvuková signalizace 
+   - <s>JA-81M  Univerzální rozhraní Pro připojení externích detektorů</s>
+   - <s>JA-82SH  Detektor otřesu nebo náklonu Detekce manipulace s předměty</s>
+   - <s>JA-83M  Magnetický detektor mini Detekce otevření dveří</s>
+   - <s>JA-83P  PIR detektor Detekce pohybu osob</s>
+   - <s>JA-85ST  Detektor kouře a teploty Detekce požáru</s>
+   - RC-86K  Dálkový ovladač Aktivace/deaktivace systému
    - <s>TP-82N  Termostat</s>
 * Podpora pro Azure IoT Suite https://www.microsoft.com/en-us/server-cloud/internet-of-things/azure-iot-suite.aspx
    - Registrace do IoT Hubu
