@@ -23,6 +23,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
             }
         }
 
+        protected internal override void OnDispose()
+        {
+        }
+
         public event SensorEventHandler SensorNotification;
 
         protected virtual void OnSensorNotification(SensorEventArgs e)

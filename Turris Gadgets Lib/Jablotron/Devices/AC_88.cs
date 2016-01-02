@@ -27,6 +27,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
             OnRelayStateChangeNotification(new RelayStateChangeEventArgs(message.Contains(MessagePatern)));
         }
 
+        protected internal override void OnDispose()
+        {
+        }
+
         protected virtual void OnRelayStateChangeNotification(RelayStateChangeEventArgs e)
         {
             RelayStateChangeNotification?.Invoke(this, e);

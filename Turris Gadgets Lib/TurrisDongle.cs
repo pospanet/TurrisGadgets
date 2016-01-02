@@ -15,17 +15,17 @@ namespace Pospa.NET.TurrisGadgets
     public class TurrisDongle : IDisposable
     {
         private const string ProbeCommand = "WHO AM I?";
-        private const string TamperMessagePatern = "TAMPER";
-        private const string ActActivePatern = "ACT:1";
-        private const string LowBatteryMessagePatern = "LB:1";
+        internal const string TamperMessagePatern = "TAMPER";
+        internal const string ActActivePatern = "ACT:1";
+        internal const string LowBatteryMessagePatern = "LB:1";
         private const string NoDeviceAddressPatern = "[--------]";
         private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
         private const string JablotronDeviceSlotAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
         private const string JablotronDeviceAddressRegexString = @"\[(?<address>\d+)\]";
         private const int BufferLength = 128;
-        private static readonly Regex _turrisDongleResponceRegex;
-        private static readonly Regex _jablotronDeviceSlotAddressRegex;
-        private static readonly Regex _jablotronDeviceAddressRegex;
+        private static readonly Regex TurrisDongleResponceRegex;
+        private static readonly Regex JablotronDeviceSlotAddressRegex;
+        private static readonly Regex JablotronDeviceAddressRegex;
         private List<string> _turrisDingleDeviceIDs;
         private readonly string[] _jablotronDeviceMap;
         private readonly Dictionary<string, JablotronDevice> _jablotronDevices;
@@ -42,16 +42,16 @@ namespace Pospa.NET.TurrisGadgets
 
 
         public event MessageReceivedEventHandler MessageReceived;
-        public event LowBatteryNotificationEventHandler LowBatteryNotificationReceived;
-        public event TamperNotificationEventHandler TamperNotificationReceived;
+        public event LowDeviceBatteryNotificationEventHandler LowDeviceBatteryNotificationReceived;
+        public event DeviceTamperNotificationEventHandler DeviceTamperNotificationReceived;
 
         public bool IsInitialized { get; private set; }
 
         static TurrisDongle()
         {
-            _turrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
-            _jablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
-            _jablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
+            TurrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
+            JablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
+            JablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
         }
 
         public TurrisDongle()
@@ -81,7 +81,7 @@ namespace Pospa.NET.TurrisGadgets
                         _jablotronDeviceMap[i] = null;
                         continue;
                     }
-                    Match match = _jablotronDeviceSlotAddressRegex.Match(message);
+                    Match match = JablotronDeviceSlotAddressRegex.Match(message);
                     string addressString = match.Groups["address"].Value;
                     int address = Convert.ToInt32(addressString);
                     JablotronDevice jablotronDevice = JablotronDevice.Create(this, (byte) (address/65536),
@@ -160,7 +160,7 @@ namespace Pospa.NET.TurrisGadgets
                 readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
 
 
-                if (_turrisDongleResponceRegex.IsMatch(readString))
+                if (TurrisDongleResponceRegex.IsMatch(readString))
                 {
                     _turrisDingleDeviceIDs.Add(deviceInformation.Id);
                     _turrisDongle = serialPort;
@@ -222,21 +222,32 @@ namespace Pospa.NET.TurrisGadgets
             _dataWriter?.Dispose();
             _turrisDongle?.Dispose();
             _readCancellationTokenSource.Dispose();
+            foreach (KeyValuePair<string, JablotronDevice> device in _jablotronDevices)
+            {
+                device.Value.Dispose();
+            }
         }
 
         protected virtual void OnMessageReceivedInternal(MessageReceivedEventArgs e)
         {
-            Match match = _jablotronDeviceAddressRegex.Match(e.Message);
+            Match match = JablotronDeviceAddressRegex.Match(e.Message);
             string addressString = match.Groups["address"].Value;
-            _jablotronDevices[addressString].ProcessMessage(e.Message);
+            if (_jablotronDevices.ContainsKey(addressString))
+            {
+                _jablotronDevices[addressString].OnMessageReceiver(e.Message);
+            }
+
+            int deviceAddress = Convert.ToInt32(addressString);
+            JablotronDevicType deviceType = JablotronDevice.GetDeviceType((byte) (deviceAddress/65536));
 
             if (e.Message.Contains(LowBatteryMessagePatern))
             {
-                LowBatteryNotificationReceived?.Invoke(this, new LowBatteryNotificationEventArgs());
+                LowDeviceBatteryNotificationReceived?.Invoke(this, new LowDeviceBatteryNotificationEventArgs(deviceAddress,deviceType));
             }
             if (e.Message.Contains(TamperMessagePatern))
             {
-                TamperNotificationReceived?.Invoke(this, new TamperNotificationEventArgs(e.Message.Contains(ActActivePatern)));
+                DeviceTamperNotificationReceived?.Invoke(this,
+                    new DeviceTamperNotificationEventArgs(e.Message.Contains(ActActivePatern), deviceAddress, deviceType));
             }
         }
 
@@ -256,6 +267,30 @@ namespace Pospa.NET.TurrisGadgets
     {
         public InitializationFinishedEventArgs()
         {
+        }
+    }
+    public delegate void LowDeviceBatteryNotificationEventHandler(object sender, LowDeviceBatteryNotificationEventArgs e);
+
+    public class LowDeviceBatteryNotificationEventArgs : LowBatteryNotificationEventArgs
+    {
+        public int DeviceAddress { get; }
+        public JablotronDevicType DeviceType { get; }
+        public LowDeviceBatteryNotificationEventArgs(int deviceAddress, JablotronDevicType deviceType)
+        {
+            DeviceAddress = deviceAddress;
+            DeviceType = deviceType;
+        }
+    }
+    public delegate void DeviceTamperNotificationEventHandler(object sender, DeviceTamperNotificationEventArgs e);
+
+    public class DeviceTamperNotificationEventArgs : TamperNotificationEventArgs
+    {
+        public int DeviceAddress { get; }
+        public JablotronDevicType DeviceType { get; }
+        public DeviceTamperNotificationEventArgs(bool isCircuitClosed, int deviceAddress, JablotronDevicType deviceType):base(isCircuitClosed)
+        {
+            DeviceAddress = deviceAddress;
+            DeviceType = deviceType;
         }
     }
 }

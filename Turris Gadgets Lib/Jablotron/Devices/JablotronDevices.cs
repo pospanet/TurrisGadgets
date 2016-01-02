@@ -12,6 +12,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
             throw new NotImplementedException();
         }
+
+        protected internal override void OnDispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class JA_80L : JablotronDevice
@@ -21,6 +26,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
 
         protected internal override void ProcessMessage(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected internal override void OnDispose()
         {
             throw new NotImplementedException();
         }
@@ -36,6 +46,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
             throw new NotImplementedException();
         }
+
+        protected internal override void OnDispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class JA_82SH : JablotronDevice
@@ -45,6 +60,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
 
         protected internal override void ProcessMessage(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected internal override void OnDispose()
         {
             throw new NotImplementedException();
         }
@@ -60,15 +80,8 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
             throw new NotImplementedException();
         }
-    }
 
-    public class JA_85ST : JablotronDevice
-    {
-        internal JA_85ST(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-
-        protected internal override void ProcessMessage(string message)
+        protected internal override void OnDispose()
         {
             throw new NotImplementedException();
         }
@@ -81,6 +94,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
 
         protected internal override void ProcessMessage(string message)
+        {
+        }
+
+        protected internal override void OnDispose()
         {
         }
     }

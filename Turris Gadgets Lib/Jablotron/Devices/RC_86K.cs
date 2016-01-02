@@ -23,6 +23,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
                 OnKeypressNotification(new KeypressEventArgs(message.Contains(KeypressArmEventPatern)));
             }
         }
+
+        protected internal override void OnDispose()
+        {
+        }
+
         public event KeypressEventHandler KeypressNotification;
 
         protected virtual void OnKeypressNotification(KeypressEventArgs e)

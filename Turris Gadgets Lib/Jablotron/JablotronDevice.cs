@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Pospa.NET.TurrisGadgets.Jablotron.Devices;
 
 namespace Pospa.NET.TurrisGadgets.Jablotron
 {
-    public abstract class JablotronDevice
+    public abstract class JablotronDevice:IDisposable
     {
         private const string TxMessagePatern = "TX ENROLL:{0} PGX:{1} PGY:{2} ALARM:{3} BEEP:{4}";
         protected readonly byte _type;
@@ -144,10 +145,60 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
             await _turrisDongle.SendCommand(message);
         }
 
+        internal async Task OnMessageReceiver(string message)
+        {
+            if (message.Contains(TurrisDongle.LowBatteryMessagePatern))
+            {
+                LowBatteryNotification?.Invoke(this, new LowBatteryNotificationEventArgs());
+            }
+            if (message.Contains(TurrisDongle.TamperMessagePatern))
+            {
+                TamperNotification?.Invoke(this,
+                    new TamperNotificationEventArgs(message.Contains(TurrisDongle.ActActivePatern)));
+            }
+            await Task.Run(() => ProcessMessage(message));
+        }
+
         protected internal abstract void ProcessMessage(string message);
 
         protected internal virtual async Task Initialize()
         {
         }
+
+        protected internal abstract void OnDispose();
+
+        public void Dispose()
+        {
+            OnDispose();
+        }
+    }
+    public delegate void LowBatteryNotificationEventHandler(object sender, LowBatteryNotificationEventArgs e);
+
+    public class LowBatteryNotificationEventArgs : EventArgs
+    {
+        public LowBatteryNotificationEventArgs()
+        {
+        }
+    }
+    public delegate void TamperNotificationEventHandler(object sender, TamperNotificationEventArgs e);
+
+    public class TamperNotificationEventArgs : EventArgs
+    {
+        public bool IsCircuitClosed { get; }
+        public TamperNotificationEventArgs(bool isCircuitClosed)
+        {
+            IsCircuitClosed = isCircuitClosed;
+        }
+    }
+    public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
+
+    public class MessageReceivedEventArgs : EventArgs
+    {
+        public MessageReceivedEventArgs(string message)
+        {
+            Message = message;
+        }
+
+        public string Message { get; }
     }
 }

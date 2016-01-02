@@ -37,6 +37,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
             }
         }
 
+        protected internal override void OnDispose()
+        {
+        }
+
         public double SetTemperature { get; }
         public double ActualTemperature { get; }
         public event TemperatureEventHandler TemperatureSetNotification;
