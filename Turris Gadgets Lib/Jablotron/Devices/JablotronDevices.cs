@@ -70,23 +70,6 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         }
     }
 
-    public class JA_83M : JablotronDevice
-    {
-        internal JA_83M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
-
-        protected internal override void ProcessMessage(string message)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected internal override void OnDispose()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class UnknownJablotronDevice : JablotronDevice
     {
         internal UnknownJablotronDevice(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)

@@ -2,9 +2,9 @@
 
 namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
 {
-    public class JA_83P : DefaultJablotronSensorDevice
+    public class JA_83M : DefaultJablotronSensorDevice
     {
-        public JA_83P(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        internal JA_83M(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
         }
 
@@ -16,6 +16,6 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
         }
 
-        public override bool IsSensorCircuitPresent => false;
+        public override bool IsSensorCircuitPresent => true;
     }
 }

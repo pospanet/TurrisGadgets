@@ -40,6 +40,8 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
             DefectNotification?.Invoke(this, e);
         }
+
+        public override bool IsSensorCircuitPresent => false;
     }
 
     public delegate void ButtonEventHandler(object sender, ButtonEventArgs e);

@@ -12,11 +12,13 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
         {
         }
 
+        public abstract bool IsSensorCircuitPresent { get; }
+
         internal override async Task OnMessageReceiver(string message)
         {
             if (message.Contains(SensorPatern))
             {
-                OnSensorNotification(new SensorEventArgs());
+                OnSensorNotification(new SensorEventArgs(message.Contains(TurrisDongle.ActActivePatern)));
             }
             if (message.Contains(BeaconPatern))
             {
@@ -44,8 +46,10 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
     public class SensorEventArgs : EventArgs
     {
-        public SensorEventArgs()
+        public bool IsCircuitClosed { get; }
+        public SensorEventArgs(bool isCircuitClosed)
         {
+            IsCircuitClosed = isCircuitClosed;
         }
     }
 
