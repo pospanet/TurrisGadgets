@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -7,7 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Devices.SerialCommunication;
+using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.Storage;
 using Windows.Storage.Streams;
+using Pospa.NET.IoTHub;
 using Pospa.NET.TurrisGadgets.Jablotron;
 
 namespace Pospa.NET.TurrisGadgets
@@ -30,6 +32,8 @@ namespace Pospa.NET.TurrisGadgets
         private readonly string[] _jablotronDeviceMap;
         private readonly Dictionary<string, JablotronDevice> _jablotronDevices;
 
+        private const string CommandPatern = "TX ENROLL:{0} PGX:{1} PGY:{2} ALARM:{3} BEEP:{4}";
+
         private Task _messageProcessingTask;
 
         private const int CancelTimeout = 3;
@@ -40,6 +44,8 @@ namespace Pospa.NET.TurrisGadgets
 
         private readonly CancellationTokenSource _readCancellationTokenSource;
 
+        private static readonly EasClientDeviceInformation DeviceInfo;
+        private readonly ApplicationDataContainer _settings;
 
         public event MessageReceivedEventHandler MessageReceived;
         public event LowDeviceBatteryNotificationEventHandler LowDeviceBatteryNotificationReceived;
@@ -52,7 +58,11 @@ namespace Pospa.NET.TurrisGadgets
             TurrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
             JablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
             JablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
+            DeviceInfo = new EasClientDeviceInformation();
         }
+
+        public string DeviceName => DeviceInfo.FriendlyName;
+        public Guid DeviceId => DeviceInfo.Id;
 
         public TurrisDongle()
         {
@@ -61,42 +71,69 @@ namespace Pospa.NET.TurrisGadgets
             _jablotronDeviceMap = new string[32];
             _jablotronDevices = new Dictionary<string, JablotronDevice>();
             IsInitialized = false;
+            _settings = ApplicationData.Current.LocalSettings;
         }
 
-        public event InitializationFinishedEventHandler InitializationFinishedNotification;
-        public async Task Initialize(bool initializeDeviceList = true)
+        public event InitializationEventHandler InitializationFinishedNotification;
+        public event InitializationEventHandler InitializationFailedNotification;
+
+        public async Task InitializeAsync(bool initializeDeviceList = true)
         {
-            if (IsInitialized) return;
-            await InitializeTurrisDongle();
-            if (initializeDeviceList)
+            try
             {
-                for (int i = 0; i < 32; i++)
+                if (IsInitialized) return;
+                await InitializeTurrisDongle();
+                if (initializeDeviceList)
                 {
-                    string command = string.Format("GET SLOT:{0:00}", i);
-                    _dataWriter.WriteString(ComposeCommand(command));
-                    await _dataWriter.StoreAsync();
-                    string message = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
-                    if (message.Contains(NoDeviceAddressPatern))
+                    for (int i = 0; i < 32; i++)
                     {
-                        _jablotronDeviceMap[i] = null;
-                        continue;
+                        string command = string.Format("GET SLOT:{0:00}", i);
+                        _dataWriter.WriteString(ComposeCommand(command));
+                        await _dataWriter.StoreAsync();
+                        string message = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
+                        if (message.Contains(NoDeviceAddressPatern))
+                        {
+                            _jablotronDeviceMap[i] = null;
+                            continue;
+                        }
+                        Match match = JablotronDeviceSlotAddressRegex.Match(message);
+                        string addressString = match.Groups["address"].Value;
+                        int address = Convert.ToInt32(addressString);
+                        JablotronDevice jablotronDevice = JablotronDevice.Create(this, (byte) (address/65536),
+                            (ushort) (address%65536));
+                        _jablotronDevices.Add(addressString, jablotronDevice);
+                        _jablotronDeviceMap[i] = addressString;
                     }
-                    Match match = JablotronDeviceSlotAddressRegex.Match(message);
-                    string addressString = match.Groups["address"].Value;
-                    int address = Convert.ToInt32(addressString);
-                    JablotronDevice jablotronDevice = JablotronDevice.Create(this, (byte) (address/65536),
-                        (ushort) (address%65536));
-                    _jablotronDevices.Add(addressString, jablotronDevice);
-                    _jablotronDeviceMap[i] = addressString;
                 }
+                IsInitialized = true;
+                foreach (KeyValuePair<string, JablotronDevice> device in _jablotronDevices)
+                {
+                    await device.Value.InitializeAsync();
+                }
+                OnInitializationFinishedNotification(new InitializationEventArgs());
+                _messageProcessingTask = MessageProcessing();
             }
-            IsInitialized = true;
-            foreach (KeyValuePair<string, JablotronDevice> device in _jablotronDevices)
+            catch (Exception ex)
             {
-                await device.Value.Initialize();
+                OnInitializationFailedNotification(new InitializationEventArgs(ex));
             }
-            OnInitializationFinishedNotification(new InitializationFinishedEventArgs());
-            _messageProcessingTask = MessageProcessing();
+        }
+
+        public async Task InitializeAzureConnection(string iotHub, string sas)
+        {
+            CloudMessage cloudMessage = await AzureIoTHubHelper.ReceiveMessageDataAsync(DeviceId.ToString(), iotHub, sas, 3600);
+
+            await AzureIoTHubHelper.CompleteMessage(DeviceId.ToString(), iotHub, sas, cloudMessage.MessageId);
+
+            Device device = new Device(DeviceId.ToString());
+            DeviceMessage message = new DeviceMessage(device);
+            message.UserId = "Pospa";
+            message.MessageId = DateTime.UtcNow.ToBinary().ToString();
+            message.CorrelationId = "Pospa.NET";
+            message.Properties.Add("TestKey", "TestValue");
+            await AzureIoTHubHelper.SendMessageDataAsync(DeviceId.ToString(), iotHub, sas, message);
+            device = await AzureIoTHubHelper.AddDeviceAsync(device, iotHub, sas);
+            device = await AzureIoTHubHelper.GetDeviceAsync(DeviceId.ToString(), iotHub, sas);
         }
 
         public void Cancel()
@@ -104,10 +141,18 @@ namespace Pospa.NET.TurrisGadgets
             _readCancellationTokenSource.Cancel();
         }
 
-        public async Task SendCommand(string command)
+        public async Task SendCommandAsync(string command)
         {
             _dataWriter.WriteString(ComposeCommand(command));
             await _dataWriter.StoreAsync();
+        }
+
+        public async Task SendCommandAsync(bool enrole, bool pgx, bool pgy, bool alarm, AlarmSound alarmSound)
+        {
+            await
+                SendCommandAsync(string.Format(CommandPatern, enrole ? "1" : "0", pgx ? "1" : "0", pgy ? "1" : "0",
+                    alarm ? "1" : "0",
+                    alarmSound.Equals(AlarmSound.None) ? "NONE" : alarmSound.Equals(AlarmSound.Slow) ? "SLOW" : "FAST"));
         }
 
         public IEnumerable<JablotronDevice> GetRegisteredDevices()
@@ -120,7 +165,7 @@ namespace Pospa.NET.TurrisGadgets
             return _jablotronDeviceMap;
         }
 
-        private async Task<SerialDevice> InitializeSerialDevice(string id)
+        private async Task<SerialDevice> InitializeSerialDeviceAsync(string id)
         {
             SerialDevice serialPort = await SerialDevice.FromIdAsync(id);
             serialPort.WriteTimeout = TimeSpan.FromMilliseconds(500);
@@ -152,7 +197,7 @@ namespace Pospa.NET.TurrisGadgets
             foreach (DeviceInformation deviceInformation in deviceInformations.Where(di => di.Id.Contains("FTDIBUS#")))
             {
                 string readString = "";
-                SerialDevice serialPort = await InitializeSerialDevice(deviceInformation.Id);
+                SerialDevice serialPort = await InitializeSerialDeviceAsync(deviceInformation.Id);
                 DataWriter dataWriter = new DataWriter(serialPort.OutputStream);
                 dataWriter.WriteString(ComposeCommand(ProbeCommand));
                 await dataWriter.StoreAsync();
@@ -234,7 +279,7 @@ namespace Pospa.NET.TurrisGadgets
             string addressString = match.Groups["address"].Value;
             if (_jablotronDevices.ContainsKey(addressString))
             {
-                _jablotronDevices[addressString].OnMessageReceiver(e.Message);
+                _jablotronDevices[addressString].OnMessageReceiverAsync(e.Message);
             }
 
             int deviceAddress = Convert.ToInt32(addressString);
@@ -242,7 +287,8 @@ namespace Pospa.NET.TurrisGadgets
 
             if (e.Message.Contains(LowBatteryMessagePatern))
             {
-                LowDeviceBatteryNotificationReceived?.Invoke(this, new LowDeviceBatteryNotificationEventArgs(deviceAddress,deviceType));
+                LowDeviceBatteryNotificationReceived?.Invoke(this,
+                    new LowDeviceBatteryNotificationEventArgs(deviceAddress, deviceType));
             }
             if (e.Message.Contains(TamperMessagePatern))
             {
@@ -256,38 +302,58 @@ namespace Pospa.NET.TurrisGadgets
             MessageReceived?.Invoke(this, e);
         }
 
-        protected virtual void OnInitializationFinishedNotification(InitializationFinishedEventArgs e)
+        protected virtual void OnInitializationFinishedNotification(InitializationEventArgs e)
         {
             InitializationFinishedNotification?.Invoke(this, e);
         }
-    }
-    public delegate void InitializationFinishedEventHandler(object sender, InitializationFinishedEventArgs e);
 
-    public class InitializationFinishedEventArgs : EventArgs
-    {
-        public InitializationFinishedEventArgs()
+        protected virtual void OnInitializationFailedNotification(InitializationEventArgs e)
         {
+            InitializationFailedNotification?.Invoke(this, e);
         }
     }
-    public delegate void LowDeviceBatteryNotificationEventHandler(object sender, LowDeviceBatteryNotificationEventArgs e);
+
+    public delegate void InitializationEventHandler(object sender, InitializationEventArgs e);
+
+    public class InitializationEventArgs : EventArgs
+    {
+        public Exception Exception { get; }
+
+        public InitializationEventArgs()
+        {
+            Exception = null;
+        }
+
+        public InitializationEventArgs(Exception ex) : this()
+        {
+            Exception = ex;
+        }
+    }
+
+    public delegate void LowDeviceBatteryNotificationEventHandler(object sender, LowDeviceBatteryNotificationEventArgs e
+        );
 
     public class LowDeviceBatteryNotificationEventArgs : LowBatteryNotificationEventArgs
     {
         public int DeviceAddress { get; }
         public JablotronDevicType DeviceType { get; }
+
         public LowDeviceBatteryNotificationEventArgs(int deviceAddress, JablotronDevicType deviceType)
         {
             DeviceAddress = deviceAddress;
             DeviceType = deviceType;
         }
     }
+
     public delegate void DeviceTamperNotificationEventHandler(object sender, DeviceTamperNotificationEventArgs e);
 
     public class DeviceTamperNotificationEventArgs : TamperNotificationEventArgs
     {
         public int DeviceAddress { get; }
         public JablotronDevicType DeviceType { get; }
-        public DeviceTamperNotificationEventArgs(bool isCircuitClosed, int deviceAddress, JablotronDevicType deviceType):base(isCircuitClosed)
+
+        public DeviceTamperNotificationEventArgs(bool isCircuitClosed, int deviceAddress, JablotronDevicType deviceType)
+            : base(isCircuitClosed)
         {
             DeviceAddress = deviceAddress;
             DeviceType = deviceType;

@@ -14,7 +14,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
         public abstract bool IsSensorCircuitPresent { get; }
 
-        internal override async Task OnMessageReceiver(string message)
+        internal override async Task OnMessageReceiverAsync(string message)
         {
             if (message.Contains(SensorPatern))
             {
@@ -24,7 +24,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
             {
                 OnBeaconNotification(new BeaconEventArgs());
             }
-            await base.OnMessageReceiver(message);
+            await base.OnMessageReceiverAsync(message);
         }
 
         public event SensorEventHandler SensorNotification;

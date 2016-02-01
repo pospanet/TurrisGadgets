@@ -108,6 +108,7 @@
     <None Include="Turris Gadgets Lib.nuspec" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlarmSound.cs" />
     <Compile Include="Jablotron\DefaultJablotronSensorDevice.cs" />
     <Compile Include="Jablotron\Devices\JA_81M.cs" />
     <Compile Include="Jablotron\Devices\JA_82SH.cs" />
@@ -124,6 +125,12 @@
     <Compile Include="Jablotron\RelayStateChangeDelegate.cs" />
     <Compile Include="TurrisDongle.cs" />
     <EmbeddedResource Include="Properties\Turris_Gadgets_Lib.rd.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\IoT Hub lib\IoT Hub lib.csproj">
+      <Project>{ee2f3719-ce0c-44e7-ba27-75b39cd6695b}</Project>
+      <Name>IoT Hub lib</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

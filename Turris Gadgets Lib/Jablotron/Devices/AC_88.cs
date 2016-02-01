@@ -5,7 +5,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
 {
     public class AC_88 : JablotronDevice
     {
-        private const string MessagePatern = "RELAY:1";
+        private const string RelayIsOnMessagePatern = "RELAY:1";
         private bool _isRelayOn;
         internal AC_88(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
         {
@@ -24,7 +24,8 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
 
         protected internal override void ProcessMessage(string message)
         {
-            OnRelayStateChangeNotification(new RelayStateChangeEventArgs(message.Contains(MessagePatern)));
+            _isRelayOn = message.Contains(RelayIsOnMessagePatern);
+            OnRelayStateChangeNotification(new RelayStateChangeEventArgs(_isRelayOn));
         }
 
         protected internal override void OnDispose()
@@ -41,13 +42,13 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
             _isRelayOn = isOn;
         }
 
-        public async Task ToggleRelayState()
+        public async Task ToggleRelayStateAsync()
         {
         }
 
-        public async Task SetRelay(bool on)
+        public async Task SetRelayAsync(bool on)
         {
-            //this.SendMessage()
+            //this.SendMessageAsync()
         }
     }
 }

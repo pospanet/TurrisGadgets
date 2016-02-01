@@ -139,13 +139,13 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
             TamperNotification?.Invoke(this, e);
         }
 
-        protected async Task SendMessage(bool pgx, bool pgy)
+        protected async Task SendMessageAsync(bool pgx, bool pgy)
         {
             string message = string.Format(TxMessagePatern, 0, pgx ? 1 : 0, pgy ? 1 : 0, 0, "NONE");
-            await _turrisDongle.SendCommand(message);
+            await _turrisDongle.SendCommandAsync(message);
         }
 
-        internal virtual async Task OnMessageReceiver(string message)
+        internal virtual async Task OnMessageReceiverAsync(string message)
         {
             if (message.Contains(TurrisDongle.LowBatteryMessagePatern))
             {
@@ -161,7 +161,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
         protected internal abstract void ProcessMessage(string message);
 
-        protected internal virtual async Task Initialize()
+        protected internal virtual async Task InitializeAsync()
         {
         }
 

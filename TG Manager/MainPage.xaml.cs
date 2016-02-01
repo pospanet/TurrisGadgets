@@ -24,10 +24,17 @@ namespace TG_Manager
             _dongle = new TurrisDongle();
             _dongle.MessageReceived += Dongle_MessageReceived;
             _dongle.InitializationFinishedNotification += _dongle_InitializationFinishedNotification;
-            _initTask = _dongle.Initialize(true);
+            _dongle.InitializationFailedNotification += _dongle_InitializationFailedNotification;
+            _initTask = _dongle.InitializeAsync(true);
+
         }
 
-        private void _dongle_InitializationFinishedNotification(object sender, InitializationFinishedEventArgs e)
+        private void _dongle_InitializationFailedNotification(object sender, InitializationEventArgs e)
+        {
+            string message = e.Exception.Message;
+        }
+
+        private void _dongle_InitializationFinishedNotification(object sender, InitializationEventArgs e)
         {
             JablotronDevice[] pirs =
                 _dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.JA_83P)).ToArray();
