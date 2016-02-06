@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Controls;
 using Newtonsoft.Json;
 
 namespace Pospa.NET.IoTHub
@@ -18,10 +19,10 @@ namespace Pospa.NET.IoTHub
 
         private const string IoTHubUrlPostfix = ".azure-devices.net";
         private const int DefaultHttpTimeout = 100;
-        private const string RequestUriFormat = "/devices/{0}?api-version={1}";
+        private const string DeviceManagementRequestUriFormat = "/devices/{0}?api-version={1}";
         private const string DeviceMessageRequestUriFromat = "/devices/{0}/messages/events?api-version={1}";
         private const string CloudMessageRequestUriFormat = "/devices/{0}/messages/devicebound?api-version={1}";
-        private const string ApiVersionQueryString = "2015-08-15-preview";
+        private const string ApiVersionQueryString = "2016-02-03";
         private const string MediaTypeForDeviceManagementApis = "application/json";
 
         private const string CompleteCloudMessageRequestUriFormat =
@@ -33,13 +34,14 @@ namespace Pospa.NET.IoTHub
         private const string AbandonCloudMessageRequestUriFormat =
             "/devices/{0}/messages/devicebound/{2}?abandon&api-version={1}";
 
+        private const string GetDeviceListRequestUriFormat = "/devices?top={0}&api-version={1}";
+
         private const string MessagePropertyHeaderPrefix = "IoTHub-app-";
         private const string MessageCorrelationIdHeaderKey = "IoTHub-CorrelationId";
         private const string MessageMessageIdHeaderKey = "IoTHub-MessageId";
         private const string MessageUserIdHeaderKey = "IoTHub-UserId";
         private const string MessageLockTimeoutHeaderKey = "IoTHub-MessageLockTimeout";
 
-        private const string MessageEtagHeaderKey = "Etag";
         private const string MessageSequenceNumberHeaderKey = "IoTHub-SequenceNumber";
         private const string MessageEnquedTimeHeaderKey = "IoTHub-EnqueuedTime";
         private const string MessageExpiryTimeHeaderKey = "IoTHub-Expiry";
@@ -47,6 +49,9 @@ namespace Pospa.NET.IoTHub
         private const string MessageToHeaderKey = "IoTHub-To";
         private const string MessageContentTypeHeaderKey = "Content-Type";
         private const string MessageContentEncodingHeaderKey = "Content-Encoding";
+
+        private const string DeviceStatisticRequestUriFormat = "/statistics/devices?api-version={0}";
+        private const string ServiceStatisticRequestUriFormat = "/statistics/service?api-version={0}";
 
         #endregion Constants
 
@@ -86,7 +91,7 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RequestUriFormat, device.Id, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id, ApiVersionQueryString),
                     UriKind.Relative);
 
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Put, sas, device, cancellationToken);
@@ -103,7 +108,7 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RequestUriFormat, deviceId, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId, ApiVersionQueryString),
                     UriKind.Relative);
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
         }
@@ -133,7 +138,7 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RequestUriFormat, device.Id, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id, ApiVersionQueryString),
                     UriKind.Relative);
 
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Put, sas, device, cancellationToken);
@@ -150,12 +155,60 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RequestUriFormat, deviceId, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId, ApiVersionQueryString),
                     UriKind.Relative);
             await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
         }
 
+        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas, int maxNumberOfDevices)
+        {
+            return await GetDeviceListAsync(iotHub, sas, maxNumberOfDevices, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas, int maxNumberOfDevices,CancellationToken cancellationToken)
+        {
+            Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
+            Uri endPoint =
+                new Uri(
+                    string.Format(CultureInfo.InvariantCulture, GetDeviceListRequestUriFormat, maxNumberOfDevices, ApiVersionQueryString),
+                    UriKind.Relative);
+            return await SendWebRequest<Device[]>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
+        }
+
         #endregion Device identities
+
+        #region Statistic
+
+        public static async Task<DeviceIdentitiesStatistics> GetDeviceStatisticAsync(string iotHub, string sas)
+        {
+            return await GetDeviceStatisticAsync(iotHub, sas, CancellationToken.None);
+        }
+
+        public static async Task<DeviceIdentitiesStatistics> GetDeviceStatisticAsync(string iotHub, string sas, CancellationToken cancellationToken)
+        {
+            Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
+            Uri endPoint =
+                new Uri(
+                    string.Format(CultureInfo.InvariantCulture, DeviceStatisticRequestUriFormat, ApiVersionQueryString),
+                    UriKind.Relative);
+            return await SendWebRequest<DeviceIdentitiesStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
+        }
+        public static async Task<ServiceStatistics> GetServiceStatisticAsync(string iotHub, string sas)
+        {
+            return await GetServiceStatisticAsync(iotHub, sas, CancellationToken.None);
+        }
+
+        public static async Task<ServiceStatistics> GetServiceStatisticAsync(string iotHub, string sas, CancellationToken cancellationToken)
+        {
+            Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
+            Uri endPoint =
+                new Uri(
+                    string.Format(CultureInfo.InvariantCulture, ServiceStatisticRequestUriFormat, ApiVersionQueryString),
+                    UriKind.Relative);
+            return await SendWebRequest<ServiceStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
+        }
+
+        #endregion Statistic
 
         #region Device Messaging
 
@@ -247,55 +300,58 @@ namespace Pospa.NET.IoTHub
             return cloudMessage;
         }
 
-        public static async Task CompleteMessage(string deviceId, string iotHub, string sas, string sequenceNumber)
+        public static async Task CompleteMessage(string etag, string iotHub, string sas, string sequenceNumber)
         {
-            await CompleteMessage(deviceId, iotHub, sas, sequenceNumber, CancellationToken.None);
+            await CompleteMessage(etag, iotHub, sas, sequenceNumber, CancellationToken.None);
         }
 
-        public static async Task CompleteMessage(string deviceId, string iotHub, string sas, string sequenceNumber,
+        public static async Task CompleteMessage(string etag, string iotHub, string sas, string sequenceNumber,
             CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, CompleteCloudMessageRequestUriFormat, deviceId,
+                    string.Format(CultureInfo.InvariantCulture, CompleteCloudMessageRequestUriFormat, etag,
                         ApiVersionQueryString, sequenceNumber),
                     UriKind.Relative);
-            await SendWebRequest(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
+            await
+                SendWebRequest(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
         }
 
-        public static async Task RejectMessage(string deviceId, string iotHub, string sas, long sequenceNumber)
+        public static async Task RejectMessage(string etag, string iotHub, string sas, string sequenceNumber)
         {
-            await RejectMessage(deviceId, iotHub, sas, sequenceNumber, CancellationToken.None);
+            await RejectMessage(etag, iotHub, sas, sequenceNumber, CancellationToken.None);
         }
 
-        public static async Task RejectMessage(string deviceId, string iotHub, string sas, long sequenceNumber,
+        public static async Task RejectMessage(string etag, string iotHub, string sas, string sequenceNumber,
             CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RejectCloudMessageRequestUriFormat, deviceId,
+                    string.Format(CultureInfo.InvariantCulture, RejectCloudMessageRequestUriFormat, etag,
                         ApiVersionQueryString, sequenceNumber),
                     UriKind.Relative);
-            await SendWebRequest(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
+            await
+                SendWebRequest(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
         }
 
-        public static async Task AbandonMessage(string deviceId, string iotHub, string sas, long sequenceNumber)
+        public static async Task AbandonMessage(string etag, string iotHub, string sas, string sequenceNumber)
         {
-            await AbandonMessage(deviceId, iotHub, sas, sequenceNumber, CancellationToken.None);
+            await AbandonMessage(etag, iotHub, sas, sequenceNumber, CancellationToken.None);
         }
 
-        public static async Task AbandonMessage(string deviceId, string iotHub, string sas, long sequenceNumber,
+        public static async Task AbandonMessage(string etag, string iotHub, string sas, string sequenceNumber,
             CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, RejectCloudMessageRequestUriFormat, deviceId,
+                    string.Format(CultureInfo.InvariantCulture, AbandonCloudMessageRequestUriFormat, etag,
                         ApiVersionQueryString, sequenceNumber),
                     UriKind.Relative);
-            await SendWebRequest(baseAddress, endPoint, HttpMethod.Post, sas, null, cancellationToken);
+            await
+                SendWebRequest(baseAddress, endPoint, HttpMethod.Post, sas, null, cancellationToken);
         }
 
         #endregion Device Messaging

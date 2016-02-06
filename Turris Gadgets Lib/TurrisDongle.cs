@@ -121,17 +121,7 @@ namespace Pospa.NET.TurrisGadgets
 
         public async Task InitializeAzureConnection(string iotHub, string sas)
         {
-            CloudMessage cloudMessage = await AzureIoTHubHelper.ReceiveMessageDataAsync(DeviceId.ToString(), iotHub, sas, 3600);
-
-            await AzureIoTHubHelper.CompleteMessage(DeviceId.ToString(), iotHub, sas, cloudMessage.MessageId);
-
             Device device = new Device(DeviceId.ToString());
-            DeviceMessage message = new DeviceMessage(device);
-            message.UserId = "Pospa";
-            message.MessageId = DateTime.UtcNow.ToBinary().ToString();
-            message.CorrelationId = "Pospa.NET";
-            message.Properties.Add("TestKey", "TestValue");
-            await AzureIoTHubHelper.SendMessageDataAsync(DeviceId.ToString(), iotHub, sas, message);
             device = await AzureIoTHubHelper.AddDeviceAsync(device, iotHub, sas);
             device = await AzureIoTHubHelper.GetDeviceAsync(DeviceId.ToString(), iotHub, sas);
         }

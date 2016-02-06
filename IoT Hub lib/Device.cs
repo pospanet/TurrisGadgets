@@ -53,4 +53,27 @@ namespace Pospa.NET.IoTHub
         [JsonProperty(PropertyName = "authentication")]
         public AuthenticationMechanism Authentication { get; set; }
     }
+
+    public class ServiceStatistics
+    {
+        public ServiceStatistics()
+        {
+        }
+
+        [JsonProperty(PropertyName = "totalConnectedDevices")]
+        public long ConnectedDevices { get; set; }
+    }
+
+    public class DeviceIdentitiesStatistics
+    {
+        public DeviceIdentitiesStatistics()
+        {
+        }
+        [JsonProperty(PropertyName = "totalDeviceCount")]
+        public long TotalDeviceCount { get; set; }
+        [JsonProperty(PropertyName = "enabledDeviceCount")]
+        public long EnabledDeviceCount { get; set; }
+        [JsonProperty(PropertyName = "disabledDeviceCount")]
+        public long DisabledDeviceCount { get; set; }
+    }
 }
