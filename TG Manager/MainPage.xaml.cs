@@ -22,6 +22,9 @@ namespace TG_Manager
         {
             InitializeComponent();
             _dongle = new TurrisDongle();
+
+            _dongle.InitializeAzureConnection("<IoT hub name>", "<device SAS key>");
+
             _dongle.MessageReceived += Dongle_MessageReceived;
             _dongle.InitializationFinishedNotification += _dongle_InitializationFinishedNotification;
             _dongle.InitializationFailedNotification += _dongle_InitializationFailedNotification;

@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.UI.Xaml.Controls;
 using Newtonsoft.Json;
 
 namespace Pospa.NET.IoTHub
@@ -18,12 +17,14 @@ namespace Pospa.NET.IoTHub
         #region Constants
 
         private const string IoTHubUrlPostfix = ".azure-devices.net";
+        private const string ApiVersionQueryString = "2016-02-03";
+
         private const int DefaultHttpTimeout = 100;
+        private const string MediaTypeForDeviceManagementApis = "application/json";
+
         private const string DeviceManagementRequestUriFormat = "/devices/{0}?api-version={1}";
         private const string DeviceMessageRequestUriFromat = "/devices/{0}/messages/events?api-version={1}";
         private const string CloudMessageRequestUriFormat = "/devices/{0}/messages/devicebound?api-version={1}";
-        private const string ApiVersionQueryString = "2016-02-03";
-        private const string MediaTypeForDeviceManagementApis = "application/json";
 
         private const string CompleteCloudMessageRequestUriFormat =
             "/devices/{0}/messages/devicebound/{2}?api-version={1}";
@@ -41,7 +42,6 @@ namespace Pospa.NET.IoTHub
         private const string MessageMessageIdHeaderKey = "IoTHub-MessageId";
         private const string MessageUserIdHeaderKey = "IoTHub-UserId";
         private const string MessageLockTimeoutHeaderKey = "IoTHub-MessageLockTimeout";
-
         private const string MessageSequenceNumberHeaderKey = "IoTHub-SequenceNumber";
         private const string MessageEnquedTimeHeaderKey = "IoTHub-EnqueuedTime";
         private const string MessageExpiryTimeHeaderKey = "IoTHub-Expiry";
@@ -91,7 +91,8 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id,
+                        ApiVersionQueryString),
                     UriKind.Relative);
 
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Put, sas, device, cancellationToken);
@@ -108,7 +109,8 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId,
+                        ApiVersionQueryString),
                     UriKind.Relative);
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
         }
@@ -138,7 +140,8 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, device.Id,
+                        ApiVersionQueryString),
                     UriKind.Relative);
 
             return await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Put, sas, device, cancellationToken);
@@ -155,22 +158,26 @@ namespace Pospa.NET.IoTHub
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, DeviceManagementRequestUriFormat, deviceId,
+                        ApiVersionQueryString),
                     UriKind.Relative);
             await SendWebRequest<Device>(baseAddress, endPoint, HttpMethod.Delete, sas, null, cancellationToken);
         }
 
-        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas, int maxNumberOfDevices)
+        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas,
+            int maxNumberOfDevices)
         {
             return await GetDeviceListAsync(iotHub, sas, maxNumberOfDevices, CancellationToken.None);
         }
 
-        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas, int maxNumberOfDevices,CancellationToken cancellationToken)
+        public static async Task<IEnumerable<Device>> GetDeviceListAsync(string iotHub, string sas,
+            int maxNumberOfDevices, CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
-                    string.Format(CultureInfo.InvariantCulture, GetDeviceListRequestUriFormat, maxNumberOfDevices, ApiVersionQueryString),
+                    string.Format(CultureInfo.InvariantCulture, GetDeviceListRequestUriFormat, maxNumberOfDevices,
+                        ApiVersionQueryString),
                     UriKind.Relative);
             return await SendWebRequest<Device[]>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
         }
@@ -184,28 +191,37 @@ namespace Pospa.NET.IoTHub
             return await GetDeviceStatisticAsync(iotHub, sas, CancellationToken.None);
         }
 
-        public static async Task<DeviceIdentitiesStatistics> GetDeviceStatisticAsync(string iotHub, string sas, CancellationToken cancellationToken)
+        public static async Task<DeviceIdentitiesStatistics> GetDeviceStatisticAsync(string iotHub, string sas,
+            CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
                     string.Format(CultureInfo.InvariantCulture, DeviceStatisticRequestUriFormat, ApiVersionQueryString),
                     UriKind.Relative);
-            return await SendWebRequest<DeviceIdentitiesStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
+            return
+                await
+                    SendWebRequest<DeviceIdentitiesStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null,
+                        cancellationToken);
         }
+
         public static async Task<ServiceStatistics> GetServiceStatisticAsync(string iotHub, string sas)
         {
             return await GetServiceStatisticAsync(iotHub, sas, CancellationToken.None);
         }
 
-        public static async Task<ServiceStatistics> GetServiceStatisticAsync(string iotHub, string sas, CancellationToken cancellationToken)
+        public static async Task<ServiceStatistics> GetServiceStatisticAsync(string iotHub, string sas,
+            CancellationToken cancellationToken)
         {
             Uri baseAddress = new UriBuilder("https", string.Concat(iotHub, IoTHubUrlPostfix), 443).Uri;
             Uri endPoint =
                 new Uri(
                     string.Format(CultureInfo.InvariantCulture, ServiceStatisticRequestUriFormat, ApiVersionQueryString),
                     UriKind.Relative);
-            return await SendWebRequest<ServiceStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken);
+            return
+                await
+                    SendWebRequest<ServiceStatistics>(baseAddress, endPoint, HttpMethod.Get, sas, null,
+                        cancellationToken);
         }
 
         #endregion Statistic
@@ -267,32 +283,42 @@ namespace Pospa.NET.IoTHub
             properties.Add(MessageLockTimeoutHeaderKey, lockTimeout.ToString());
             HttpResponseMessage responseMessage =
                 await SendWebRequest(baseAddress, endPoint, HttpMethod.Get, sas, null, cancellationToken, properties);
-            CloudMessage cloudMessage=new CloudMessage();
-            foreach (KeyValuePair<string, IEnumerable<string>> pair in responseMessage.Headers.Where(h=>h.Key.StartsWith(MessagePropertyHeaderPrefix)))
+            CloudMessage cloudMessage = new CloudMessage();
+            foreach (
+                KeyValuePair<string, IEnumerable<string>> pair in
+                    responseMessage.Headers.Where(h => h.Key.StartsWith(MessagePropertyHeaderPrefix)))
             {
-                cloudMessage.Properties.Add(pair.Key.Substring(MessagePropertyHeaderPrefix.Length), pair.Value.FirstOrDefault());
+                cloudMessage.Properties.Add(pair.Key.Substring(MessagePropertyHeaderPrefix.Length),
+                    pair.Value.FirstOrDefault());
             }
             cloudMessage.Etag = responseMessage.Headers.ETag.Tag;
-            cloudMessage.SequenceNumber = Convert.ToInt64(responseMessage.Headers.GetValues(MessageSequenceNumberHeaderKey).FirstOrDefault());
-            cloudMessage.EnqueuedTime = Convert.ToDateTime(responseMessage.Headers.GetValues(MessageEnquedTimeHeaderKey).FirstOrDefault());
+            cloudMessage.SequenceNumber =
+                Convert.ToInt64(responseMessage.Headers.GetValues(MessageSequenceNumberHeaderKey).FirstOrDefault());
+            cloudMessage.EnqueuedTime =
+                Convert.ToDateTime(responseMessage.Headers.GetValues(MessageEnquedTimeHeaderKey).FirstOrDefault());
             IEnumerable<string> values;
-            if(responseMessage.Headers.TryGetValues(MessageExpiryTimeHeaderKey, out values) &&!string.IsNullOrEmpty(values.FirstOrDefault()))
+            if (responseMessage.Headers.TryGetValues(MessageExpiryTimeHeaderKey, out values) &&
+                !string.IsNullOrEmpty(values.FirstOrDefault()))
             {
                 cloudMessage.ExpiryTime = Convert.ToDateTime(values.FirstOrDefault());
             }
             cloudMessage.Ack = responseMessage.Headers.GetValues(MessageAckHeaderKey).FirstOrDefault();
             cloudMessage.MessageId = responseMessage.Headers.GetValues(MessageMessageIdHeaderKey).FirstOrDefault();
-            cloudMessage.CorrelationId = responseMessage.Headers.GetValues(MessageCorrelationIdHeaderKey).FirstOrDefault();
-            if (responseMessage.Headers.TryGetValues(MessageUserIdHeaderKey, out values) && !string.IsNullOrEmpty(values.FirstOrDefault()))
+            cloudMessage.CorrelationId =
+                responseMessage.Headers.GetValues(MessageCorrelationIdHeaderKey).FirstOrDefault();
+            if (responseMessage.Headers.TryGetValues(MessageUserIdHeaderKey, out values) &&
+                !string.IsNullOrEmpty(values.FirstOrDefault()))
             {
                 cloudMessage.UserId = values.FirstOrDefault();
             }
             cloudMessage.To = responseMessage.Headers.GetValues(MessageToHeaderKey).FirstOrDefault();
-            if (responseMessage.Headers.TryGetValues(MessageContentTypeHeaderKey, out values) && !string.IsNullOrEmpty(values.FirstOrDefault()))
+            if (responseMessage.Headers.TryGetValues(MessageContentTypeHeaderKey, out values) &&
+                !string.IsNullOrEmpty(values.FirstOrDefault()))
             {
                 cloudMessage.DataType = values.FirstOrDefault();
             }
-            if (responseMessage.Headers.TryGetValues(MessageContentEncodingHeaderKey, out values) && !string.IsNullOrEmpty(values.FirstOrDefault()))
+            if (responseMessage.Headers.TryGetValues(MessageContentEncodingHeaderKey, out values) &&
+                !string.IsNullOrEmpty(values.FirstOrDefault()))
             {
                 cloudMessage.DataEncoding = values.FirstOrDefault();
             }
