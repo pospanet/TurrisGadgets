@@ -186,7 +186,7 @@ namespace Pospa.NET.TurrisGadgets
             }
         }
 
-        public async Task InitializeTurrisDongle()
+        internal async Task InitializeTurrisDongle()
         {
             _turrisDingleDeviceIDs = new List<string>();
             string deviceSelector = SerialDevice.GetDeviceSelector();
