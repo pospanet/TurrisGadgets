@@ -21,11 +21,11 @@ namespace Pospa.NET.TurrisGadgets
         internal const string ActActivePatern = "ACT:1";
         internal const string LowBatteryMessagePatern = "LB:1";
         private const string NoDeviceAddressPatern = "[--------]";
-        private const string TurrisDongleResponceRegexString = @"TURRIS DONGLE V\d.\d";
+        private const string TurrisDongleResponseRegexString = @"TURRIS DONGLE V\d.\d";
         private const string JablotronDeviceSlotAddressRegexString = @"SLOT:\d{2}\s\[(?<address>\d+)\]";
         private const string JablotronDeviceAddressRegexString = @"\[(?<address>\d+)\]";
         private const int BufferLength = 128;
-        private static readonly Regex TurrisDongleResponceRegex;
+        private static readonly Regex TurrisDongleResponseRegex;
         private static readonly Regex JablotronDeviceSlotAddressRegex;
         private static readonly Regex JablotronDeviceAddressRegex;
         private List<string> _turrisDingleDeviceIDs;
@@ -59,7 +59,7 @@ namespace Pospa.NET.TurrisGadgets
 
         static TurrisDongle()
         {
-            TurrisDongleResponceRegex = new Regex(TurrisDongleResponceRegexString);
+            TurrisDongleResponseRegex = new Regex(TurrisDongleResponseRegexString);
             JablotronDeviceSlotAddressRegex = new Regex(JablotronDeviceSlotAddressRegexString);
             JablotronDeviceAddressRegex = new Regex(JablotronDeviceAddressRegexString);
             DeviceInfo = new EasClientDeviceInformation();
@@ -202,7 +202,7 @@ namespace Pospa.NET.TurrisGadgets
                 readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
 
 
-                if (TurrisDongleResponceRegex.IsMatch(readString))
+                if (TurrisDongleResponseRegex.IsMatch(readString))
                 {
                     _turrisDingleDeviceIDs.Add(deviceInformation.Id);
                     _turrisDongle = serialPort;
