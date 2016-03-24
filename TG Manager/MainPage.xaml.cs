@@ -2,9 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
+using Pospa.NET.Sigfox;
 using Pospa.NET.TurrisGadgets;
 using Pospa.NET.TurrisGadgets.Jablotron;
 using Pospa.NET.TurrisGadgets.Jablotron.Devices;
+using InitializationEventArgs = Pospa.NET.TurrisGadgets.InitializationEventArgs;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -16,12 +18,16 @@ namespace TG_Manager
     public sealed partial class MainPage : Page
     {
         private readonly TurrisDongle _dongle;
+        private readonly SnocModule _snoc;
         private readonly Task _initTask;
 
         public MainPage()
         {
             InitializeComponent();
+            _snoc = new SnocModule();
             _dongle = new TurrisDongle();
+
+            _snoc.InitializeAsync();
 
             _dongle.InitializeAzureConnection("<IoT hub name>", "<device SAS key>");
 

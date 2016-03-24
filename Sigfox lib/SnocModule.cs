@@ -1,8 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Enumeration;
 using Windows.Devices.SerialCommunication;
+using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage.Streams;
 
 namespace Pospa.NET.Sigfox
@@ -11,6 +15,26 @@ namespace Pospa.NET.Sigfox
     {
         private DataWriter _dataWriter;
         private DataReader _dataReader;
+        private const string ProbeCommand = "AT\r";
+        private const int BufferLength = 128;
+        private readonly CancellationTokenSource _readCancellationTokenSource;
+        private const int CancelTimeoutSeconds = 3;
+        private SerialDevice _snocModule;
+        private static readonly EasClientDeviceInformation DeviceInfo;
+        private static readonly Regex SnocModuleResponseRegex;
+        private const string SnocModuleResponseRegexString = @"OK";
+
+        static SnocModule()
+        {
+            SnocModuleResponseRegex = new Regex(SnocModuleResponseRegexString);
+            DeviceInfo = new EasClientDeviceInformation();
+        }
+
+        public SnocModule()
+        {
+            _readCancellationTokenSource = new CancellationTokenSource();
+            _snocModule = null;
+        }
 
         public async Task InitializeAsync(bool initializeDeviceList = true)
         {
@@ -35,44 +59,60 @@ namespace Pospa.NET.Sigfox
         {
             string deviceSelector = SerialDevice.GetDeviceSelector();
             DeviceInformationCollection deviceInformations = await DeviceInformation.FindAllAsync(deviceSelector);
-            foreach (DeviceInformation deviceInformation in deviceInformations.Where(di => di.Id.Contains("FTDIBUS#")))
+            SerialDevice serialPort = await InitializeSerialDeviceAsync(deviceInformations.First().Id);
+
+            SetSerialPortParameters(serialPort);
+
+            DataWriter dataWriter = new DataWriter(serialPort.OutputStream);
+            dataWriter.WriteString(ProbeCommand);
+            await dataWriter.StoreAsync();
+            DataReader dataReader = new DataReader(serialPort.InputStream);
+            string readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
+
+
+            if (SnocModuleResponseRegex.IsMatch(readString))
             {
-                //string readString = "";
-                //SerialDevice serialPort = await InitializeSerialDeviceAsync(deviceInformation.Id);
-                //DataWriter dataWriter = new DataWriter(serialPort.OutputStream);
-                //dataWriter.WriteString(ComposeCommand(ProbeCommand));
-                //await dataWriter.StoreAsync();
-                //DataReader dataReader = new DataReader(serialPort.InputStream);
-                //readString = await GetDataFromDataReader(dataReader, _readCancellationTokenSource.Token);
-
-
-                //if (TurrisDongleResponceRegex.IsMatch(readString))
-                //{
-                //    _turrisDingleDeviceIDs.Add(deviceInformation.Id);
-                //    _turrisDongle = serialPort;
-                //    _dataReader = dataReader;
-                //    _dataWriter = dataWriter;
-                //}
-                //else
-                //{
-                //    dataReader.DetachBuffer();
-                //    dataReader.DetachStream();
-                //    dataReader.Dispose();
-                //    dataWriter.DetachBuffer();
-                //    dataWriter.DetachStream();
-                //    dataWriter.Dispose();
-                //    serialPort.Dispose();
-                //}
+                _snocModule = serialPort;
+                _dataReader = dataReader;
+                _dataWriter = dataWriter;
             }
-            //int dongleCount = _turrisDingleDeviceIDs.Count();
-            //if (dongleCount.Equals(0))
-            //{
-            //    throw new NullReferenceException("Turris dongle not found.");
-            //}
-            //if (dongleCount > 1)
-            //{
-            //    throw new NotSupportedException("Only one Turris dongle is supported (at the moment).");
-            //}
+            else
+            {
+                dataReader.DetachBuffer();
+                dataReader.DetachStream();
+                dataReader.Dispose();
+                dataWriter.DetachBuffer();
+                dataWriter.DetachStream();
+                dataWriter.Dispose();
+                serialPort.Dispose();
+                OnInitializationFailedNotification(new InitializationEventArgs());
+            }
+        }
+
+        private static async Task<string> GetDataFromDataReader(DataReader dataReader,
+            CancellationToken cancellationToken)
+        {
+            string readString = string.Empty;
+            dataReader.InputStreamOptions = InputStreamOptions.Partial;
+            uint bytesRead = await dataReader.LoadAsync(BufferLength).AsTask(cancellationToken);
+            if (bytesRead == 0) return readString;
+            while (dataReader.UnconsumedBufferLength > 0)
+            {
+                char c = (char) dataReader.ReadByte();
+                readString += c;
+            }
+            readString = readString.Trim('\n');
+            return readString;
+        }
+
+        private static void SetSerialPortParameters(SerialDevice serialPort)
+        {
+            serialPort.WriteTimeout = TimeSpan.FromMilliseconds(1000);
+            serialPort.ReadTimeout = TimeSpan.FromMilliseconds(1000);
+            serialPort.BaudRate = 9600;
+            serialPort.Parity = SerialParity.None;
+            serialPort.StopBits = SerialStopBitCount.One;
+            serialPort.DataBits = 8;
         }
 
         private async Task<SerialDevice> InitializeSerialDeviceAsync(string id)
@@ -88,9 +128,23 @@ namespace Pospa.NET.Sigfox
             return serialPort;
         }
 
+        public void Cancel()
+        {
+            _readCancellationTokenSource.Cancel();
+        }
+
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Cancel();
+            Task.Delay(TimeSpan.FromSeconds(CancelTimeoutSeconds));
+            _dataReader?.DetachBuffer();
+            _dataReader?.DetachStream();
+            _dataReader?.Dispose();
+            _dataWriter?.DetachBuffer();
+            _dataWriter?.DetachStream();
+            _dataWriter?.Dispose();
+            _snocModule?.Dispose();
+            _readCancellationTokenSource.Dispose();
         }
     }
 

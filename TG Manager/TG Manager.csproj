@@ -129,6 +129,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Sigfox lib\Sigfox lib.csproj">
+      <Project>{e0eed7e3-77e4-4e04-9008-dbdb76595fe0}</Project>
+      <Name>Sigfox lib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Turris Gadgets Lib\Turris Gadgets Lib.csproj">
       <Project>{57df4987-aabd-42c3-9ecd-4406b7316c1b}</Project>
       <Name>Turris Gadgets Lib</Name>
