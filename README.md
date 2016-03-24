@@ -37,7 +37,7 @@ Pro instalaci lze použít nuget balíček https://www.nuget.org/packages/Pospa.
    - Posílání událostí do IoT Hubu
    - Posílání zpětných zpráv do zařízení
 * Podpora SIGFOX sítě (http://www.sigfox.com/en/) pomocí SNOC modulu (http://yadom.fr/carte-rpisigfox.html)
-   - <s>Podpora SNOC modulu pro sigfox</s>
+   - <s>Podpora SNOC modulu pro Sigfox</s>
    - Podpora posílání událostí do IoT Hubu přes SIGFOX (záložní varianta pro případ výpadku Internetu, nebo sabotáže sítě)
    - Podpora zasílání příkazů je díky technologickým omezením takřka nemožná a nebudu se o ní ani pokoušet
 * Podpora pro automatické učení se nových prvků
