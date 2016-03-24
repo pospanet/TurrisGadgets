@@ -32,7 +32,7 @@ Pro instalaci lze použít nuget balíček https://www.nuget.org/packages/Pospa.
    - RC-86K  Dálkový ovladač Aktivace/deaktivace systému
    - <s>TP-82N  Termostat</s>
 * Podpora pro Azure IoT Suite https://www.microsoft.com/en-us/server-cloud/internet-of-things/azure-iot-suite.aspx
-   - <s>Podpora IoT Hub REST API<s/>
+   - <s>Podpora IoT Hub REST API</s>
    - Registrace do IoT Hubu
    - Posílání událostí do IoT Hubu
    - Posílání zpětných zpráv do zařízení
