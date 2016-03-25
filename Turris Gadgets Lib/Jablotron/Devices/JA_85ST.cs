@@ -2,7 +2,7 @@
 
 namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
 {
-    public class JA_85ST : DefaultJablotronSensorDevice
+    public class JA_85ST : JablotronSensorDevice
     {
         private const string ButtonPatern = "BUTTON";
         private const string DefectPatern = "DEFECT";
@@ -40,8 +40,6 @@ namespace Pospa.NET.TurrisGadgets.Jablotron.Devices
         {
             DefectNotification?.Invoke(this, e);
         }
-
-        public override bool IsSensorCircuitPresent => false;
     }
 
     public delegate void ButtonEventHandler(object sender, ButtonEventArgs e);

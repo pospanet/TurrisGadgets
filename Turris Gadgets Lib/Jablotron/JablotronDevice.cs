@@ -4,11 +4,15 @@ using Pospa.NET.TurrisGadgets.Jablotron.Devices;
 
 namespace Pospa.NET.TurrisGadgets.Jablotron
 {
-    public abstract class JablotronDevice:IDisposable
+    public abstract class JablotronDevice : IDisposable
     {
         private const string TxMessagePatern = "TX ENROLL:{0} PGX:{1} PGY:{2} ALARM:{3} BEEP:{4}";
         protected readonly byte _type;
         protected readonly ushort _address;
+        public string LastRawMessage { get; private set; }
+        public bool IsBatteryLow { get; private set; }
+        public bool IsTampered { get; private set; }
+
 
         protected readonly TurrisDongle _turrisDongle;
 
@@ -18,6 +22,7 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
             _type = type;
             _address = address;
             AddressString = Address.ToString("00000000");
+            IsBatteryLow = IsTampered = false;
         }
 
         public int Address => _type*65536 + _address;
@@ -121,7 +126,6 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
                     return new TP_82N(dongle, type, address);
                 default:
                     return new UnknownJablotronDevice(dongle, type, address);
-
             }
         }
 
@@ -147,15 +151,19 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
         internal virtual async Task OnMessageReceiverAsync(string message)
         {
-            if (message.Contains(TurrisDongle.LowBatteryMessagePatern))
-            {
-                LowBatteryNotification?.Invoke(this, new LowBatteryNotificationEventArgs());
-            }
-            if (message.Contains(TurrisDongle.TamperMessagePatern))
+            LastRawMessage = message;
+            IsBatteryLow = message.Contains(TurrisDongle.LowBatteryMessagePatern);
+            IsTampered = message.Contains(TurrisDongle.TamperMessagePatern);
+            if (IsTampered)
             {
                 TamperNotification?.Invoke(this,
                     new TamperNotificationEventArgs(message.Contains(TurrisDongle.ActActivePatern)));
             }
+            if (IsBatteryLow)
+            {
+                LowBatteryNotification?.Invoke(this, new LowBatteryNotificationEventArgs());
+            }
+
             await Task.Run(() => ProcessMessage(message));
         }
 
@@ -174,9 +182,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
 
         public byte GetIndex()
         {
-            return (byte) Array.FindIndex(_turrisDongle.GetRegisteredDeviceMap(), address => address.Equals(AddressString));
+            return
+                (byte) Array.FindIndex(_turrisDongle.GetRegisteredDeviceMap(), address => address.Equals(AddressString));
         }
     }
+
     public delegate void LowBatteryNotificationEventHandler(object sender, LowBatteryNotificationEventArgs e);
 
     public class LowBatteryNotificationEventArgs : EventArgs
@@ -185,16 +195,19 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
         {
         }
     }
+
     public delegate void TamperNotificationEventHandler(object sender, TamperNotificationEventArgs e);
 
     public class TamperNotificationEventArgs : EventArgs
     {
         public bool IsCircuitClosed { get; }
+
         public TamperNotificationEventArgs(bool isCircuitClosed)
         {
             IsCircuitClosed = isCircuitClosed;
         }
     }
+
     public delegate void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
 
     public class MessageReceivedEventArgs : EventArgs

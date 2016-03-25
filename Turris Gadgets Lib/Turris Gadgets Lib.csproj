@@ -110,7 +110,7 @@
   <ItemGroup>
     <Compile Include="AlarmSound.cs" />
     <Compile Include="DataMessage.cs" />
-    <Compile Include="Jablotron\DefaultJablotronSensorDevice.cs" />
+    <Compile Include="Jablotron\JablotronSensorDevice.cs" />
     <Compile Include="Jablotron\Devices\JA_80L.cs" />
     <Compile Include="Jablotron\Devices\JA_81M.cs" />
     <Compile Include="Jablotron\Devices\JA_82SH.cs" />

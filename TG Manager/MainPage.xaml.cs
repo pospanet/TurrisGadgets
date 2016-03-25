@@ -29,8 +29,8 @@ namespace TG_Manager
             _snoc.InitializeAsync(null, null);
 
             _dongle.MessageReceived += Dongle_MessageReceived;
-            _initTask = _dongle.InitializeAsync(_dongle_InitializationFailedNotification, _dongle_InitializationFinishedNotification, true);
-
+            _initTask = _dongle.InitializeAsync(_dongle_InitializationFailedNotification,
+                _dongle_InitializationFinishedNotification, true);
         }
 
         private static void _dongle_InitializationFailedNotification(Exception ex)
@@ -48,11 +48,18 @@ namespace TG_Manager
                 pir.SensorNotification += Pir_SensorNotification;
             }
             JablotronDevice[] thermostats =
-               dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.TP_82N)).ToArray();
+                dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.TP_82N)).ToArray();
             foreach (TP_82N thermostat in thermostats)
             {
                 thermostat.TemperatureMeasuredNotification += Thermostat_TemperatureMeasuredNotification;
                 thermostat.TemperatureSetNotification += Thermostat_TemperatureSetNotification;
+            }
+            JablotronDevice[] sensors =
+                dongle.GetRegisteredDevices().Where(d => d is JablotronSensorDevice).ToArray();
+            foreach (JablotronSensorDevice sensor in sensors)
+            {
+                sensor.BeaconNotification += Pir_BeaconNotification;
+                sensor.SensorNotification += Pir_SensorNotification;
             }
         }
 
@@ -79,14 +86,15 @@ namespace TG_Manager
         {
         }
 
-        private static void SendMessageToAzure()
+        private static void SendMessageToAzure(JablotronSensorDevice sensorDevice)
         {
-            //DataMessage dataMessage = new DataMessage(e.Message);
-            //dataMessage.RawDeviceAddress = addressString;
-            //dataMessage.DeviceAddress = deviceAddress;
-            //dataMessage.DeviceType = deviceType;
-            //dataMessage.LowBattery = lowBatteryNotification;
-            //dataMessage.Tamper = tamperNotification;
+            DataMessage dataMessage = new DataMessage(sensorDevice.LastRawMessage);
+            dataMessage.RawDeviceAddress = sensorDevice.AddressString;
+            dataMessage.DeviceAddress = sensorDevice.Address;
+            dataMessage.DeviceType = sensorDevice.GetDeviceType();
+            dataMessage.LowBattery = sensorDevice.IsBatteryLow;
+            dataMessage.Tamper = sensorDevice.IsTampered;
+            dataMessage.Sensor = sensorDevice.IsSensorActivated;
             //DeviceMessage deviceMessage = new DeviceMessage(dataMessage);
             //AzureIoTHubHelper.SendMessageDataAsync(DeviceId.ToString(), _iotHub, _sas, deviceMessage);
         }

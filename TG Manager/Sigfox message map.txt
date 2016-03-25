@@ -1,6 +1,6 @@
 ﻿bit(s)		Description
 ---------------------------------------------------------------------------------
 0-4		Turris dongle device map index (little-endian)
-5		Alarm
+5		Sensor
 6		Tamper
 7		Low battery

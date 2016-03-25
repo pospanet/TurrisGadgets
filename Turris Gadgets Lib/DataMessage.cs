@@ -32,5 +32,7 @@ namespace Pospa.NET.TurrisGadgets
         public bool LowBattery { get; set; }
         [JsonProperty(PropertyName = "Tamper")]
         public bool Tamper { get; set; }
+        [JsonProperty(PropertyName = "Sensor")]
+        public bool Sensor { get; set; }
     }
 }

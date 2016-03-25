@@ -3,26 +3,29 @@ using System.Threading.Tasks;
 
 namespace Pospa.NET.TurrisGadgets.Jablotron
 {
-    public abstract class DefaultJablotronSensorDevice : JablotronDevice
+    public abstract class JablotronSensorDevice : JablotronDevice
     {
         private const string SensorPatern = "SENSOR";
         private const string BeaconPatern = "BEACON";
 
-        internal DefaultJablotronSensorDevice(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
-        {
-        }
+        public bool IsSensorActivated { get; private set; }
 
-        public abstract bool IsSensorCircuitPresent { get; }
+        internal JablotronSensorDevice(TurrisDongle dongle, byte type, ushort address) : base(dongle, type, address)
+        {
+            IsSensorActivated = false;
+        }
 
         internal override async Task OnMessageReceiverAsync(string message)
         {
             if (message.Contains(SensorPatern))
             {
                 OnSensorNotification(new SensorEventArgs(message.Contains(TurrisDongle.ActActivePatern)));
+                IsSensorActivated = true;
             }
             if (message.Contains(BeaconPatern))
             {
                 OnBeaconNotification(new BeaconEventArgs());
+                IsSensorActivated = false;
             }
             await base.OnMessageReceiverAsync(message);
         }
