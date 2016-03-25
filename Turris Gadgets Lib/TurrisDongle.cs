@@ -47,10 +47,6 @@ namespace Pospa.NET.TurrisGadgets
         private static readonly EasClientDeviceInformation DeviceInfo;
         private readonly ApplicationDataContainer _settings;
 
-        private string _iotHub;
-        private string _sas;
-        private bool _isAzureActivated;
-
         public event MessageReceivedEventHandler MessageReceived;
         public event LowDeviceBatteryNotificationEventHandler LowDeviceBatteryNotificationReceived;
         public event DeviceTamperNotificationEventHandler DeviceTamperNotificationReceived;
@@ -76,7 +72,6 @@ namespace Pospa.NET.TurrisGadgets
             _jablotronDevices = new Dictionary<string, JablotronDevice>();
             IsInitialized = false;
             _settings = ApplicationData.Current.LocalSettings;
-            _isAzureActivated = false;
         }
 
         public async Task InitializeAsync(Action<Exception> initFailedAction, Action<TurrisDongle> initFinishedAction, bool initializeDeviceList = true)
@@ -119,15 +114,6 @@ namespace Pospa.NET.TurrisGadgets
             {
                 initFailedAction?.Invoke(ex);
             }
-        }
-
-        public async Task InitializeAzureConnection(string iotHub, string sas)
-        {
-            //Device device = new Device(DeviceId.ToString());
-            //device = await AzureIoTHubHelper.GetDeviceAsync(DeviceId.ToString(), iotHub, sas);
-            _iotHub = iotHub;
-            _sas = sas;
-            _isAzureActivated = true;
         }
 
         public void Cancel()
@@ -281,18 +267,6 @@ namespace Pospa.NET.TurrisGadgets
 
             bool lowBatteryNotification = e.Message.Contains(LowBatteryMessagePatern);
             bool tamperNotification = e.Message.Contains(TamperMessagePatern);
-
-            if (_isAzureActivated)
-            {
-                DataMessage dataMessage = new DataMessage(e.Message);
-                dataMessage.RawDeviceAddress = addressString;
-                dataMessage.DeviceAddress = deviceAddress;
-                dataMessage.DeviceType = deviceType;
-                dataMessage.LowBattery = lowBatteryNotification;
-                dataMessage.Tamper = tamperNotification;
-                DeviceMessage deviceMessage = new DeviceMessage(dataMessage);
-                AzureIoTHubHelper.SendMessageDataAsync(DeviceId.ToString(), _iotHub, _sas, deviceMessage);
-            }
 
             if (lowBatteryNotification)
             {

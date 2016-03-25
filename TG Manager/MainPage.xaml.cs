@@ -28,8 +28,6 @@ namespace TG_Manager
 
             _snoc.InitializeAsync(null, null);
 
-            _dongle.InitializeAzureConnection("<IoT hub name>", "<device SAS key>");
-
             _dongle.MessageReceived += Dongle_MessageReceived;
             _initTask = _dongle.InitializeAsync(_dongle_InitializationFailedNotification, _dongle_InitializationFinishedNotification, true);
 
@@ -79,6 +77,18 @@ namespace TG_Manager
 
         private static void Pir_BeaconNotification(object sender, BeaconEventArgs e)
         {
+        }
+
+        private static void SendMessageToAzure()
+        {
+            //DataMessage dataMessage = new DataMessage(e.Message);
+            //dataMessage.RawDeviceAddress = addressString;
+            //dataMessage.DeviceAddress = deviceAddress;
+            //dataMessage.DeviceType = deviceType;
+            //dataMessage.LowBattery = lowBatteryNotification;
+            //dataMessage.Tamper = tamperNotification;
+            //DeviceMessage deviceMessage = new DeviceMessage(dataMessage);
+            //AzureIoTHubHelper.SendMessageDataAsync(DeviceId.ToString(), _iotHub, _sas, deviceMessage);
         }
     }
 }
