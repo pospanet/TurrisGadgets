@@ -39,23 +39,17 @@ namespace Pospa.NET.Sigfox
             _dataReader = null;
         }
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(Action<Exception> initFailed, Action<SnocModule> initFinished)
         {
             try
             {
                 await InitializeSerialPort();
+                initFinished?.Invoke(this);
             }
             catch (Exception ex)
             {
-                OnInitializationFailedNotification(new InitializationEventArgs(ex));
+                initFailed?.Invoke(ex);
             }
-        }
-
-        public event InitializationEventHandler InitializationFailedNotification;
-
-        protected virtual void OnInitializationFailedNotification(InitializationEventArgs e)
-        {
-            InitializationFailedNotification?.Invoke(this, e);
         }
 
         private async Task InitializeSerialPort()
@@ -88,7 +82,7 @@ namespace Pospa.NET.Sigfox
                 dataWriter.DetachStream();
                 dataWriter.Dispose();
                 serialPort.Dispose();
-                OnInitializationFailedNotification(new InitializationEventArgs());
+                throw new IOException("Unable to init SNOC module");
             }
         }
 
@@ -170,23 +164,6 @@ namespace Pospa.NET.Sigfox
             _dataWriter?.Dispose();
             _snocModule?.Dispose();
             _readCancellationTokenSource.Dispose();
-        }
-    }
-
-    public delegate void InitializationEventHandler(object sender, InitializationEventArgs e);
-
-    public class InitializationEventArgs : EventArgs
-    {
-        public Exception Exception { get; }
-
-        public InitializationEventArgs()
-        {
-            Exception = null;
-        }
-
-        public InitializationEventArgs(Exception ex) : this()
-        {
-            Exception = ex;
         }
     }
 }

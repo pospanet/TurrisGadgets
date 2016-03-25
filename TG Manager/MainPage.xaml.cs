@@ -26,7 +26,7 @@ namespace TG_Manager
             _snoc = new SnocModule();
             _dongle = new TurrisDongle();
 
-            _snoc.InitializeAsync();
+            _snoc.InitializeAsync(null, null);
 
             _dongle.InitializeAzureConnection("<IoT hub name>", "<device SAS key>");
 
