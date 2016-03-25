@@ -16,6 +16,7 @@ namespace Pospa.NET.Sigfox
         private DataWriter _dataWriter;
         private DataReader _dataReader;
         private const string ProbeCommand = "AT\r";
+        private const string SendCommand = "AT$SS={0}\r";
         private const int BufferLength = 128;
         private readonly CancellationTokenSource _readCancellationTokenSource;
         private const int CancelTimeoutSeconds = 3;
@@ -34,9 +35,11 @@ namespace Pospa.NET.Sigfox
         {
             _readCancellationTokenSource = new CancellationTokenSource();
             _snocModule = null;
+            _dataWriter = null;
+            _dataReader = null;
         }
 
-        public async Task InitializeAsync(bool initializeDeviceList = true)
+        public async Task InitializeAsync()
         {
             try
             {
@@ -101,7 +104,7 @@ namespace Pospa.NET.Sigfox
                 char c = (char) dataReader.ReadByte();
                 readString += c;
             }
-            readString = readString.Trim('\n');
+            readString = readString.Trim('\n').Trim('\r');
             return readString;
         }
 
@@ -126,6 +129,28 @@ namespace Pospa.NET.Sigfox
             serialPort.DataBits = 8;
             serialPort.Handshake = SerialHandshake.None;
             return serialPort;
+        }
+
+        public async Task<bool> SendMessageAsync(byte[] data, Action<bool> callback)
+        {
+            string message = string.Join(string.Empty, data.Select(b => b.ToString("X2")));
+            message = String.Format(SendCommand, message);
+            _dataWriter.WriteString(message);
+            uint result = await _dataWriter.StoreAsync().AsTask();
+            if (result!=message.Length)
+            {
+                throw new IOException("Unable tp send command to SNOC module");
+            }
+            string readString1 = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
+            string readString2 = await GetDataFromDataReader(_dataReader, _readCancellationTokenSource.Token);
+
+            readString1 = readString1.Trim('\n').Trim('\r');
+            readString2 = readString2.Trim('\n').Trim('\r');
+            message = message.Trim('\n').Trim('\r');
+
+            bool ret = readString1.Equals(message) && SnocModuleResponseRegex.IsMatch(readString2);
+            callback?.Invoke(ret);
+            return ret;
         }
 
         public void Cancel()
