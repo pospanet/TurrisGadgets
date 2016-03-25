@@ -171,6 +171,11 @@ namespace Pospa.NET.TurrisGadgets.Jablotron
         {
             OnDispose();
         }
+
+        public byte GetIndex()
+        {
+            return (byte) Array.FindIndex(_turrisDongle.GetRegisteredDeviceMap(), address => address.Equals(AddressString));
+        }
     }
     public delegate void LowBatteryNotificationEventHandler(object sender, LowBatteryNotificationEventArgs e);
 

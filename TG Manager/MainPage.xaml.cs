@@ -6,7 +6,6 @@ using Pospa.NET.Sigfox;
 using Pospa.NET.TurrisGadgets;
 using Pospa.NET.TurrisGadgets.Jablotron;
 using Pospa.NET.TurrisGadgets.Jablotron.Devices;
-using InitializationEventArgs = Pospa.NET.TurrisGadgets.InitializationEventArgs;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -32,28 +31,26 @@ namespace TG_Manager
             _dongle.InitializeAzureConnection("<IoT hub name>", "<device SAS key>");
 
             _dongle.MessageReceived += Dongle_MessageReceived;
-            _dongle.InitializationFinishedNotification += _dongle_InitializationFinishedNotification;
-            _dongle.InitializationFailedNotification += _dongle_InitializationFailedNotification;
-            _initTask = _dongle.InitializeAsync(true);
+            _initTask = _dongle.InitializeAsync(_dongle_InitializationFailedNotification, _dongle_InitializationFinishedNotification, true);
 
         }
 
-        private void _dongle_InitializationFailedNotification(object sender, InitializationEventArgs e)
+        private static void _dongle_InitializationFailedNotification(Exception ex)
         {
-            string message = e.Exception.Message;
+            string message = ex.Message;
         }
 
-        private void _dongle_InitializationFinishedNotification(object sender, InitializationEventArgs e)
+        private static void _dongle_InitializationFinishedNotification(TurrisDongle dongle)
         {
             JablotronDevice[] pirs =
-                _dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.JA_83P)).ToArray();
+                dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.JA_83P)).ToArray();
             foreach (JA_83P pir in pirs)
             {
                 pir.BeaconNotification += Pir_BeaconNotification;
                 pir.SensorNotification += Pir_SensorNotification;
             }
             JablotronDevice[] thermostats =
-               _dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.TP_82N)).ToArray();
+               dongle.GetRegisteredDevices().Where(d => d.GetDeviceType().Equals(JablotronDevicType.TP_82N)).ToArray();
             foreach (TP_82N thermostat in thermostats)
             {
                 thermostat.TemperatureMeasuredNotification += Thermostat_TemperatureMeasuredNotification;
@@ -61,12 +58,12 @@ namespace TG_Manager
             }
         }
 
-        private void Thermostat_TemperatureSetNotification(object sender, TemperatureEventArgs e)
+        private static void Thermostat_TemperatureSetNotification(object sender, TemperatureEventArgs e)
         {
             decimal temperature = e.Temperature;
         }
 
-        private void Thermostat_TemperatureMeasuredNotification(object sender, TemperatureEventArgs e)
+        private static void Thermostat_TemperatureMeasuredNotification(object sender, TemperatureEventArgs e)
         {
             decimal temperature = e.Temperature;
         }
@@ -76,11 +73,11 @@ namespace TG_Manager
             string message = e.Message;
         }
 
-        private void Pir_SensorNotification(object sender, SensorEventArgs e)
+        private static void Pir_SensorNotification(object sender, SensorEventArgs e)
         {
         }
 
-        private void Pir_BeaconNotification(object sender, BeaconEventArgs e)
+        private static void Pir_BeaconNotification(object sender, BeaconEventArgs e)
         {
         }
     }

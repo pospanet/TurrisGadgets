@@ -79,10 +79,7 @@ namespace Pospa.NET.TurrisGadgets
             _isAzureActivated = false;
         }
 
-        public event InitializationEventHandler InitializationFinishedNotification;
-        public event InitializationEventHandler InitializationFailedNotification;
-
-        public async Task InitializeAsync(bool initializeDeviceList = true)
+        public async Task InitializeAsync(Action<Exception> initFailedAction, Action<TurrisDongle> initFinishedAction, bool initializeDeviceList = true)
         {
             try
             {
@@ -115,12 +112,12 @@ namespace Pospa.NET.TurrisGadgets
                 {
                     await device.Value.InitializeAsync();
                 }
-                OnInitializationFinishedNotification(new InitializationEventArgs());
+                initFinishedAction?.Invoke(this);
                 _messageProcessingTask = MessageProcessing();
             }
             catch (Exception ex)
             {
-                OnInitializationFailedNotification(new InitializationEventArgs(ex));
+                initFailedAction?.Invoke(ex);
             }
         }
 
@@ -312,33 +309,6 @@ namespace Pospa.NET.TurrisGadgets
         protected virtual void OnMessageReceived(MessageReceivedEventArgs e)
         {
             MessageReceived?.Invoke(this, e);
-        }
-
-        protected virtual void OnInitializationFinishedNotification(InitializationEventArgs e)
-        {
-            InitializationFinishedNotification?.Invoke(this, e);
-        }
-
-        protected virtual void OnInitializationFailedNotification(InitializationEventArgs e)
-        {
-            InitializationFailedNotification?.Invoke(this, e);
-        }
-    }
-
-    public delegate void InitializationEventHandler(object sender, InitializationEventArgs e);
-
-    public class InitializationEventArgs : EventArgs
-    {
-        public Exception Exception { get; }
-
-        public InitializationEventArgs()
-        {
-            Exception = null;
-        }
-
-        public InitializationEventArgs(Exception ex) : this()
-        {
-            Exception = ex;
         }
     }
 
