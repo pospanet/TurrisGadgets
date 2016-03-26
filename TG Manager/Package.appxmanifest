@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="174b3f7b-cac9-4031-88f8-2869d5ffcb34" Publisher="CN=janpos" Version="1.0.0.0" />
+  <Identity Name="59898Pospa.TurrisGadgetsManager" Publisher="CN=3DD1B7AF-8C78-43BC-A023-86E84BFBF35A" Version="1.1.0.0" />
   <mp:PhoneIdentity PhoneProductId="174b3f7b-cac9-4031-88f8-2869d5ffcb34" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>TG Manager</DisplayName>
-    <PublisherDisplayName>janpos</PublisherDisplayName>
+    <DisplayName>Turris Gadgets Manager</DisplayName>
+    <PublisherDisplayName>Pospa</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -15,7 +15,7 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="TG_Manager.App">
-      <uap:VisualElements DisplayName="TG Manager" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Turris Gadgets Manager - Testing application gor Turris Gadgets Lib" BackgroundColor="transparent">
+      <uap:VisualElements DisplayName="Turris Gadgets Manager" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Turris Gadgets Manager - Testing application gor Turris Gadgets Lib" BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />

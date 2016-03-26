@@ -45,7 +45,6 @@ namespace Pospa.NET.TurrisGadgets
         private readonly CancellationTokenSource _readCancellationTokenSource;
 
         private static readonly EasClientDeviceInformation DeviceInfo;
-        private readonly ApplicationDataContainer _settings;
 
         public event MessageReceivedEventHandler MessageReceived;
         public event LowDeviceBatteryNotificationEventHandler LowDeviceBatteryNotificationReceived;
@@ -71,7 +70,6 @@ namespace Pospa.NET.TurrisGadgets
             _jablotronDeviceMap = new string[32];
             _jablotronDevices = new Dictionary<string, JablotronDevice>();
             IsInitialized = false;
-            _settings = ApplicationData.Current.LocalSettings;
         }
 
         public async Task InitializeAsync(Action<Exception> initFailedAction, Action<TurrisDongle> initFinishedAction, bool initializeDeviceList = true)

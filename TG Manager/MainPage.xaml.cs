@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.UI.Popups;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Microsoft.ApplicationInsights;
 using Pospa.NET.Sigfox;
 using Pospa.NET.TurrisGadgets;
 using Pospa.NET.TurrisGadgets.Jablotron;
@@ -9,7 +13,7 @@ using Pospa.NET.TurrisGadgets.Jablotron.Devices;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
-namespace TG_Manager
+namespace Pospa.NET.TGManager
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
@@ -18,24 +22,50 @@ namespace TG_Manager
     {
         private readonly TurrisDongle _dongle;
         private readonly SnocModule _snoc;
-        private readonly Task _initTask;
+        private readonly Task _dongleInitTask;
+        private readonly Task _snocInitTask;
 
+        private readonly ApplicationDataContainer _settings;
+        public static TelemetryClient Telemetry { get; }
+
+        static MainPage()
+        {
+            Telemetry = new TelemetryClient();
+        }
         public MainPage()
         {
             InitializeComponent();
+
+            _settings = ApplicationData.Current.LocalSettings;
+
             _snoc = new SnocModule();
             _dongle = new TurrisDongle();
 
-            _snoc.InitializeAsync(null, null);
+            _snocInitTask = _snoc.InitializeAsync(_initializationFailedNotification, null);
 
             _dongle.MessageReceived += Dongle_MessageReceived;
-            _initTask = _dongle.InitializeAsync(_dongle_InitializationFailedNotification,
+            _dongleInitTask = _dongle.InitializeAsync(_initializationFailedNotification,
                 _dongle_InitializationFinishedNotification, true);
         }
 
-        private static void _dongle_InitializationFailedNotification(Exception ex)
+        private static async void _initializationFailedNotification(Exception ex)
         {
-            string message = ex.Message;
+            MessageDialog dialog = new Windows.UI.Popups.MessageDialog(ex.Message, "Initialization error");
+
+            dialog.Commands.Add(new Windows.UI.Popups.UICommand("OK (5s)") { Id = 0 });
+
+            if (Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily != "Windows.Mobile")
+            {
+                // Adding a 3rd command will crash the app when running on Mobile !!!
+                dialog.Commands.Add(new Windows.UI.Popups.UICommand("Maybe later") { Id = 2 });
+            }
+
+            dialog.DefaultCommandIndex = 0;
+            dialog.CancelCommandIndex = 0;
+
+            IUICommand result = await dialog.ShowAsync();
+
+            //Window.Current.Dispatcher.RunAsync()
         }
 
         private static void _dongle_InitializationFinishedNotification(TurrisDongle dongle)

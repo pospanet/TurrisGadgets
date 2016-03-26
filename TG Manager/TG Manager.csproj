@@ -7,8 +7,8 @@
     <ProjectGuid>{FEB909A3-F9B0-4B09-818B-E3F9E1092CE1}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TG_Manager</RootNamespace>
-    <AssemblyName>TG Manager</AssemblyName>
+    <RootNamespace>Pospa.NET.TGManager</RootNamespace>
+    <AssemblyName>Pospa.NET.TGManager</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.10586.0</TargetPlatformVersion>
@@ -92,6 +92,7 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Package.StoreAssociation.xml" />
     <Content Include="Sigfox message map.txt" />
     <None Include="project.json" />
   </ItemGroup>
@@ -103,6 +104,7 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NetworkWatchdog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
