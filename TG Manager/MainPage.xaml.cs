@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Core;
+using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
@@ -28,9 +31,12 @@ namespace Pospa.NET.TGManager
         private readonly ApplicationDataContainer _settings;
         public static TelemetryClient Telemetry { get; }
 
+        private static readonly EasClientDeviceInformation DeviceInfo;
+
         static MainPage()
         {
             Telemetry = new TelemetryClient();
+            DeviceInfo = new EasClientDeviceInformation();
         }
         public MainPage()
         {
@@ -50,22 +56,45 @@ namespace Pospa.NET.TGManager
 
         private static async void _initializationFailedNotification(Exception ex)
         {
-            MessageDialog dialog = new Windows.UI.Popups.MessageDialog(ex.Message, "Initialization error");
-
-            dialog.Commands.Add(new Windows.UI.Popups.UICommand("OK (5s)") { Id = 0 });
-
-            if (Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily != "Windows.Mobile")
+            Telemetry.TrackException(ex, GetAppContext());
+            try
             {
-                // Adding a 3rd command will crash the app when running on Mobile !!!
-                dialog.Commands.Add(new Windows.UI.Popups.UICommand("Maybe later") { Id = 2 });
+                MessageDialog dialog = new Windows.UI.Popups.MessageDialog(ex.Message, "Initialization error");
+
+                UICommand uiCommand = new Windows.UI.Popups.UICommand("OK") {Id = 0};
+                dialog.Commands.Add(uiCommand);
+
+                dialog.DefaultCommandIndex = 0;
+                dialog.CancelCommandIndex = 0;
+                IUICommand result = await dialog.ShowAsync();
             }
+            finally
+            {
+                Application.Current.Exit();
+                //CoreApplication.Exit();
+            }
+        }
 
-            dialog.DefaultCommandIndex = 0;
-            dialog.CancelCommandIndex = 0;
+        private static IDictionary<string, string> GetAppContext()
+        {
+            Dictionary<string,string> data = new Dictionary<string, string>();
+            data.Add("DeviceForm", Windows.System.Profile.AnalyticsInfo.DeviceForm);
+            data.Add("DeviceFamily", Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily);
+            data.Add("DeviceFamilyVersion", Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamilyVersion);
+            data.Add("DeviceFriendlyName", DeviceInfo.FriendlyName);
+            data.Add("DeviceOperatingSystem", DeviceInfo.OperatingSystem);
+            data.Add("DeviceFirmwareVersion", DeviceInfo.SystemFirmwareVersion);
+            data.Add("DeviceHardwareVersion", DeviceInfo.SystemHardwareVersion);
+            data.Add("DeviceManufacturer", DeviceInfo.SystemManufacturer);
+            data.Add("DeviceProductName", DeviceInfo.SystemProductName);
+            data.Add("DeviceSku", DeviceInfo.SystemSku);
+            data.Add("DeviceId", DeviceInfo.Id.ToString());
+            return data;
+        }
 
-            IUICommand result = await dialog.ShowAsync();
-
-            //Window.Current.Dispatcher.RunAsync()
+        private static void DispatcherTimer_Tick(object sender, object e)
+        {
+            throw new NotImplementedException();
         }
 
         private static void _dongle_InitializationFinishedNotification(TurrisDongle dongle)

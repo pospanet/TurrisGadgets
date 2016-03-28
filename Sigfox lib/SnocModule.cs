@@ -43,6 +43,7 @@ namespace Pospa.NET.Sigfox
         {
             try
             {
+                throw new Exception("Test exception");
                 await InitializeSerialPort();
                 initFinished?.Invoke(this);
             }
